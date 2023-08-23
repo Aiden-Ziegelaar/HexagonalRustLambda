@@ -1,0 +1,11 @@
+[package]
+name = "http_apigw_adaptor"
+version.workspace = true
+authors.workspace = true
+description = "APIGW driver adaptor for HTTP ports"
+documentation.workspace = true
+edition.workspace = true
+
+[dependencies]
+http = { workspace = true }
+lambda_http = { workspace = true }

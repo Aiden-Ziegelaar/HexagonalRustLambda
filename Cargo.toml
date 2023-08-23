@@ -1,0 +1,30 @@
+[workspace]
+members = [
+  # Service Definitions 
+  "services/users",
+  # Common Library Definitions
+  # "common/driving/lambda",
+]
+
+[workspace.dependencies]
+# Common Lambda HTTP Dependencies
+lambda_http = "0.8.1"
+serde = "1.0.136"
+# Common Lambda Dependencies
+tokio = { version = "1", features = ["macros"] }
+tracing = { version = "0.1", features = ["log"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt"] }
+aws_lambda_events = { version = "0.10.0" }
+http = { version = "0.2.9" }
+lambda_runtime = { version = "0.8.1" }
+query_map = { version = "0.6.0" }
+lambda_adaptor = { path = "common/driving/lambda_adaptor" }
+http_apigw_adaptor = { path = "common/driving/http_apigw_adaptor" }
+
+
+[workspace.package]
+version = "0.0.0"
+authors = ["Aiden Ziegelaar"]
+description = "A simple store API"
+documentation = "https://aiden.ziegelaar.io"
+edition = "2021"
