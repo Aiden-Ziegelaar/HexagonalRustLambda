@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! lambda_driving_adaptor {
-    ($x:ident) => (
+    ($x:ident) => {
         #[tokio::main]
         async fn main() -> Result<(), Error> {
             tracing_subscriber::fmt()
@@ -13,6 +13,5 @@ macro_rules! lambda_driving_adaptor {
 
             run(service_fn($x)).await
         }
-    );
+    };
 }
-

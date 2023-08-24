@@ -3,7 +3,8 @@ members = [
   # Service Definitions 
   "services/users",
   # Common Library Definitions
-  # "common/driving/lambda",
+  "common/driving/*",
+  "common/driven/*"
 ]
 
 [workspace.dependencies]
@@ -18,8 +19,20 @@ aws_lambda_events = { version = "0.10.0" }
 http = { version = "0.2.9" }
 lambda_runtime = { version = "0.8.1" }
 query_map = { version = "0.6.0" }
+lazy_static = { version = "1.4.0" }
+async_once = { version = "0.2.6" }
+jsonschema = { version = "0.17.1" }
+serde_json = { version = "1.0.105" }
+
+# AWS SDK Dependencies
+aws-config = { version = "0.56.0" }
+aws-sdk-dynamodb = { version = "0.29.0" }
+# Local Dependencies
+models = { path = "common/driven/models" }
 lambda_adaptor = { path = "common/driving/lambda_adaptor" }
 http_apigw_adaptor = { path = "common/driving/http_apigw_adaptor" }
+dynamo_db_repository = { path = "common/driven/dynamo_db_repository" }
+
 
 
 [workspace.package]

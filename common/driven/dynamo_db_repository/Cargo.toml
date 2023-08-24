@@ -1,0 +1,12 @@
+[package]
+name = "dynamo_db_repository"
+version.workspace = true
+authors.workspace = true
+description = "Repository for interacting with DynamoDB Single Table Design"
+documentation.workspace = true
+edition.workspace = true
+
+[dependencies]
+aws-config = { workspace = true }
+aws-sdk-dynamodb = { workspace = true }
+async_once = { workspace = true }
