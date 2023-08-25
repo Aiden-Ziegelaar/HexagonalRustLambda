@@ -5,3 +5,5 @@ authors.workspace = true
 description = "Lambda driver adaptor macro for all triggers"
 documentation.workspace = true
 edition.workspace = true
+
+[dependencies]

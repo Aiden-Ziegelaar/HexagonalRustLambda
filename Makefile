@@ -24,3 +24,10 @@ deploy:
 	terraform -chdir=infra apply
 
 build-deploy: build-production deploy
+
+build-deploy-x86:
+	cargo lambda build --x86-64 --release
+	terraform -chdir=infra apply -var="architectures=[\"x86_64\"]"
+
+load-test:
+	cd test && npm run load-test

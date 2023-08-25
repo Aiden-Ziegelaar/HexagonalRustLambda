@@ -29,3 +29,8 @@ variable "env_vars" {
     default = {}
     nullable = false
 }
+
+variable "architectures" {
+    type = list(string)
+    nullable = false
+}

@@ -48,9 +48,9 @@ macro_rules! http_lambda_driving_adaptor {
                 .query_string_parameters_ref()
                 .unwrap_or(&blank_query_map);
             let payload = match event.body() {
-                lambda_http::Body::Empty => String::new(),
-                lambda_http::Body::Text(s) => s.clone(),
-                lambda_http::Body::Binary(b) => String::from_utf8(b.clone()).unwrap(),
+                lambda_http::Body::Empty => None,
+                lambda_http::Body::Text(s) => Some(s.clone()),
+                lambda_http::Body::Binary(b) => Some(String::from_utf8(b.clone()).unwrap()),
             };
             let generic_http_response =
                 $x(path_parameters_ref, query_string_parameters_ref, &payload)
@@ -62,6 +62,6 @@ macro_rules! http_lambda_driving_adaptor {
             Ok(lambda_http_response)
         }
 
-        lambda_driving_adaptor!(http_lambda_driving_adaptor);
+        lambda_driving_adaptor!(http_lambda_driving_adaptor, true);
     };
 }

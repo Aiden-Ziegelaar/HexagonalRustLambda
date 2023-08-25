@@ -30,3 +30,5 @@ tracing-subscriber = { workspace = true }
 lambda_runtime = { workspace = true }
 http_apigw_adaptor = { workspace = true }
 lambda_adaptor = { workspace = true }
+dynamo_db_repository = { workspace = true }
+aws-config = { workspace = true }

@@ -16,3 +16,5 @@ target/
 .terraform
 infra/terraform.tfstate
 infra/terraform.tfstate.backup
+
+test/node_modules

@@ -1,17 +1,7 @@
 use std::fmt;
-use async_once::AsyncOnce;
+use std::sync::OnceLock;
 
-#[macro_use]
-extern crate lazy_static;
-
-lazy_static!{
-    static ref REPOSITORY: AsyncOnce<dynamo_db_repository::DynamoDBSingleTableRepository> = AsyncOnce::new(async {
-        let now = std::time::SystemTime::now();
-        let output = dynamo_db_repository::DynamoDBSingleTableRepository::new().await;
-        println!("DynamoDBSingleTableRepository::new() took {:?}", now.elapsed().unwrap().as_millis());
-        output
-    });
-}
+pub static REPOSITORY: OnceLock<dynamo_db_repository::DynamoDBSingleTableRepository> = OnceLock::new();
 
 pub struct ModelRepositoryError {}
 

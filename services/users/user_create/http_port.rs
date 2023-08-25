@@ -42,9 +42,20 @@ lazy_static! {
 pub async fn user_create_post_http_port(
     _path_params: &QueryMap,
     _query_params: &QueryMap,
-    payload: &str,
+    payload: &Option<String>,
 ) -> Result<Response<()>, Error> {
-    let payload_json = serde_json::from_str::<serde_json::Value>(payload).unwrap();
+    match payload {
+        None => {
+            let resp = Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header("content-type", "application/json")
+                .body(());
+            return Ok(resp.unwrap());
+        }
+        Some(_) => {}
+    }
+    let payload_str = payload.clone().unwrap();
+    let payload_json = serde_json::from_str::<serde_json::Value>(&payload_str).unwrap();
     let result = USER_SCHEMA.validate(&payload_json);
     match result {
         Ok(_) => {}
@@ -59,7 +70,7 @@ pub async fn user_create_post_http_port(
             return Ok(resp.unwrap());
         }
     }
-    let user = serde_json::from_str::<User>(payload).unwrap();
+    let user = serde_json::from_str::<User>(&payload_str).unwrap();
     match user_create_core(user).await {
         Ok(_) => {
             let resp = Response::builder()
@@ -70,7 +81,7 @@ pub async fn user_create_post_http_port(
         },
         Err(_) => {
             let resp = Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .status(StatusCode::CONFLICT)
                 .header("content-type", "application/json")
                 .body(());
             Ok(resp.unwrap())

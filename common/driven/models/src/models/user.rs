@@ -67,7 +67,7 @@ impl User {
 
 // Conceptually the call signatures of these functions are our "ports" and the implementations are our "adaptors"
 pub async fn user_get_by_email(email: String) -> Result<User, ModelRepositoryError> {
-    let result = REPOSITORY.get().await
+    let result = REPOSITORY.get().unwrap()
         .get_item_primary(email.to_string(), "-".to_string())
         .await
         .map_err(|_| ModelRepositoryError {})?;
@@ -75,7 +75,7 @@ pub async fn user_get_by_email(email: String) -> Result<User, ModelRepositoryErr
 }
 
 pub async fn user_get_by_username(username: String) -> Result<Vec<User>, ModelRepositoryError> {
-    let result = REPOSITORY.get().await
+    let result = REPOSITORY.get().unwrap()
         .get_item_index(
             username.to_string(),
             "-".to_string(),
@@ -92,7 +92,7 @@ pub async fn user_get_by_username(username: String) -> Result<Vec<User>, ModelRe
 }
 
 pub async fn user_create(user: User) -> Result<(), ModelRepositoryError> {
-    REPOSITORY.get().await
+    REPOSITORY.get().unwrap()
         .put_new_item(user.into_attr_map())
         .await
         .map_err(|_| ModelRepositoryError {}).map(|_| ())
@@ -112,7 +112,7 @@ pub async fn user_update_by_email(email: String, user: User) -> Result<User, Mod
         ":updated_at".to_string(),
         AttributeValue::S(user.updated_at.clone()),
     );
-    REPOSITORY.get().await
+    REPOSITORY.get().unwrap()
         .update_item(
             email.to_string(),
             "-".to_string(),
@@ -126,7 +126,7 @@ pub async fn user_update_by_email(email: String, user: User) -> Result<User, Mod
 }
 
 pub async fn user_delete_by_email(email: String) -> Result<User, ModelRepositoryError> {
-    let result = REPOSITORY.get().await
+    let result = REPOSITORY.get().unwrap()
         .delete_item(email.to_string(), "-".to_string())
         .await
         .map_err(|_| ModelRepositoryError {})?;

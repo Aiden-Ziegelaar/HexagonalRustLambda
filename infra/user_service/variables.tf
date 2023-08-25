@@ -12,3 +12,8 @@ variable "app_name" {
     type = string
     nullable = false
 }
+
+variable "architectures" {
+    type = list(string)
+    nullable = false
+}

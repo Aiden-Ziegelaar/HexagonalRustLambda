@@ -1,0 +1,13 @@
+{
+  "name": "hexagonal-ephemeral-rest-lambda-testing",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "load-test": "artillery run artillery.yml"
+  },
+  "author": "Aiden-Ziegelaar",
+  "dependencies": {
+    "@faker-js/faker": "^8.0.2",
+    "artillery": "^2.0.0-36"
+  }
+}

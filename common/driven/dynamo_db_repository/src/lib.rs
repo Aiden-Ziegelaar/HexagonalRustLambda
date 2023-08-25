@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::fmt;
 
+
+use aws_config::SdkConfig;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 
@@ -24,8 +26,7 @@ pub struct DynamoDBSingleTableRepository {
 }
 
 impl DynamoDBSingleTableRepository {
-    pub async fn new() -> DynamoDBSingleTableRepository {
-        let sdk_config = aws_config::load_from_env().await;
+    pub async fn new(sdk_config: SdkConfig) -> DynamoDBSingleTableRepository {
         let table_name =
             std::env::var("DYNAMO_TABLE_NAME").expect("DYNAMO_TABLE_NAME environment variable not set");
         DynamoDBSingleTableRepository {
@@ -100,6 +101,9 @@ impl DynamoDBSingleTableRepository {
             .key("s_key", s_key_att)
             .send()
             .await;
+        if result.is_err() {
+            println!("Error: {:?}", result);
+        }
         result.map_err(|_| RepositoryError)
     }
 
@@ -107,7 +111,6 @@ impl DynamoDBSingleTableRepository {
         &self,
         payload: HashMap<String, AttributeValue>,
     ) -> Result<aws_sdk_dynamodb::operation::put_item::PutItemOutput, RepositoryError> {
-        let now = std::time::SystemTime::now();
         let result = self
             .client
             .put_item()
@@ -116,7 +119,6 @@ impl DynamoDBSingleTableRepository {
             .condition_expression("attribute_not_exists(Pkey) AND attribute_not_exists(Skey)")
             .send()
             .await;
-        println!("DynamoDB time: {:?}", now.elapsed().unwrap().as_millis());
         if result.is_err() {
             println!("Error: {:?}", result);
         }

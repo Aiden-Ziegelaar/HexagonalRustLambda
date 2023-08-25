@@ -10,6 +10,5 @@ edition.workspace = true
 aws-sdk-dynamodb = { workspace = true }
 serde = { workspace = true }
 dynamo_db_repository = { workspace = true }
-lazy_static = { workspace = true }
 tokio = { workspace = true }
-async_once = { workspace = true }
+once_cell = { workspace = true }

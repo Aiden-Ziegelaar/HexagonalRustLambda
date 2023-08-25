@@ -31,7 +31,9 @@ resource "aws_lambda_function" "lambda" {
 
   runtime = "provided.al2"
 
-  architectures = ["arm64"]
+  architectures = var.architectures
+
+  //memory_size = 1024
 
   environment {
     variables = merge(

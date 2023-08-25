@@ -5,7 +5,7 @@ use query_map::QueryMap;
 pub async fn hello_world_get_http_port(
     _path_params: &QueryMap,
     query_params: &QueryMap,
-    _payload: &str,
+    _payload: &Option<String>,
 ) -> Result<Response<String>, Error> {
     let who = query_params.first("who");
     let result = hello_world_core(who).await;

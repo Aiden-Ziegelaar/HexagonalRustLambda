@@ -9,4 +9,4 @@ edition.workspace = true
 [dependencies]
 aws-config = { workspace = true }
 aws-sdk-dynamodb = { workspace = true }
-async_once = { workspace = true }
+tokio = { workspace = true }
