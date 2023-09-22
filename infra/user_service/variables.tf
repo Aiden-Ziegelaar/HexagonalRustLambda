@@ -17,3 +17,13 @@ variable "architectures" {
     type = list(string)
     nullable = false
 }
+
+variable "api_gateway_id" {
+    type = string
+    nullable = false
+}
+
+variable "api_gateway_execution_arn" {
+    type = string
+    nullable = false
+}

@@ -6,4 +6,5 @@ module "hello_world_lambda" {
     bootstrap_folder_name = "user_hello_world"
     dynamo_table_name = var.dynamo_table_name
     architectures = var.architectures
+    api_gateway_execution_arn = var.api_gateway_execution_arn
 }

@@ -44,3 +44,11 @@ resource "aws_lambda_function" "lambda" {
     )
   }
 }
+
+resource "aws_lambda_permission" "allow_apigw" {
+  statement_id  = "AllowExecutionFromAPIGW"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = var.api_gateway_execution_arn
+}

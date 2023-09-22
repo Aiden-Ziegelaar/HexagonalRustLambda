@@ -1,9 +1,9 @@
-use crate::domain::user_create_core;
+use crate::domain::user_update_core;
 
 use http::{Error, Response, StatusCode};
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;
-use models::models::user::User;
+use models::models::user::MutableUser;
 use query_map::QueryMap;
 use serde_json::json;
 
@@ -20,16 +20,10 @@ lazy_static! {
                 },
                 "email": {
                     "type": "string"
-                },
-                "username": {
-                    "type": "string"
                 }
             },
             "required": [
-                "first",
-                "last",
-                "email",
-                "username"
+                "email"
             ],
             "additionalProperties": false
         });
@@ -44,13 +38,13 @@ pub async fn user_create_post_http_port(
     _path_params: &QueryMap,
     _query_params: &QueryMap,
     payload: &Option<String>,
-) -> Result<Response<()>, Error> {
+) -> Result<Response<String>, Error> {
     match payload {
         None => {
             let resp = Response::builder()
                 .status(StatusCode::BAD_REQUEST)
                 .header("content-type", "application/json")
-                .body(());
+                .body("".to_string());
             return Ok(resp.unwrap());
         }
         Some(_) => {}
@@ -67,24 +61,24 @@ pub async fn user_create_post_http_port(
             let resp = Response::builder()
                 .status(StatusCode::BAD_REQUEST)
                 .header("content-type", "application/json")
-                .body(());
+                .body("".to_string());
             return Ok(resp.unwrap());
         }
     }
-    let user = serde_json::from_str::<User>(&payload_str).unwrap();
-    match user_create_core(user).await {
-        Ok(_) => {
+    let user_updates = serde_json::from_str::<MutableUser>(&payload_str).unwrap();
+    match user_update_core(user_updates).await {
+        Ok(user) => {
             let resp = Response::builder()
                 .status(StatusCode::CREATED)
                 .header("content-type", "application/json")
-                .body(());
+                .body(serde_json::to_string(&user).unwrap());
             Ok(resp.unwrap())
         },
         Err(_) => {
             let resp = Response::builder()
-                .status(StatusCode::CONFLICT)
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .header("content-type", "application/json")
-                .body(());
+                .body("".to_string());
             Ok(resp.unwrap())
         },
     }

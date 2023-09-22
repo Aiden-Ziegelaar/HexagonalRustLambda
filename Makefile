@@ -23,6 +23,9 @@ plan:
 deploy:
 	terraform -chdir=infra apply
 
+destroy:
+	terraform -chdir=infra destroy
+
 build-deploy: build-production deploy
 
 build-deploy-x86:
