@@ -62,6 +62,6 @@ macro_rules! http_lambda_driving_adaptor {
             Ok(lambda_http_response)
         }
 
-        lambda_driving_adaptor!(http_lambda_driving_adaptor, true);
+        lambda_driving_adaptor!(http_lambda_driving_adaptor);
     };
 }

@@ -14,7 +14,6 @@ path = "hello_world/http_adaptor.rs"
 name = "user_create"
 path = "user_create/http_adaptor.rs"
 
-
 [dependencies]
 http = { workspace = true }
 jsonschema = { workspace = true }
@@ -30,5 +29,5 @@ tracing-subscriber = { workspace = true }
 lambda_runtime = { workspace = true }
 http_apigw_adaptor = { workspace = true }
 lambda_adaptor = { workspace = true }
-dynamo_db_repository = { workspace = true }
+dynamo_db_repository = { workspace = true}
 aws-config = { workspace = true }

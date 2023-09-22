@@ -1,0 +1,11 @@
+[package]
+name = "sdk_credential_meta_repository"
+version.workspace = true
+authors.workspace = true
+description = "Repository for interacting with AWS SDK Credentials"
+documentation.workspace = true
+edition.workspace = true
+
+[dependencies]
+aws-config = { workspace = true }
+tokio = { workspace = true }

@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{ModelRepositoryError, REPOSITORY};
+use crate::ModelRepositoryError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use serde::{Deserialize, Serialize};
+use dynamo_db_repository::{DynamoDBSingleTableRepository, AWS_DYNAMO_DB_REPOSITORY};
 
 // First we define our model
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     first: String,
@@ -63,11 +63,19 @@ impl User {
             updated_at: attr.get("updated_at").unwrap().as_s().unwrap().to_string(),
         }
     }
+
+    pub fn into_attr_map_unique_username(&self) -> HashMap<String, AttributeValue> {
+        let mut item = HashMap::new();
+        item.insert("Pkey".to_string(), AttributeValue::S("user_username_".to_string() + &self.username.clone()));
+        item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
+        item.insert("email".to_string(), AttributeValue::S(self.email.clone()));
+        item
+    }
 }
 
 // Conceptually the call signatures of these functions are our "ports" and the implementations are our "adaptors"
 pub async fn user_get_by_email(email: String) -> Result<User, ModelRepositoryError> {
-    let result = REPOSITORY.get().unwrap()
+    let result = AWS_DYNAMO_DB_REPOSITORY.get_or_init(DynamoDBSingleTableRepository::new).await
         .get_item_primary(email.to_string(), "-".to_string())
         .await
         .map_err(|_| ModelRepositoryError {})?;
@@ -75,7 +83,7 @@ pub async fn user_get_by_email(email: String) -> Result<User, ModelRepositoryErr
 }
 
 pub async fn user_get_by_username(username: String) -> Result<Vec<User>, ModelRepositoryError> {
-    let result = REPOSITORY.get().unwrap()
+    let result = AWS_DYNAMO_DB_REPOSITORY.get_or_init(DynamoDBSingleTableRepository::new).await
         .get_item_index(
             username.to_string(),
             "-".to_string(),
@@ -92,27 +100,53 @@ pub async fn user_get_by_username(username: String) -> Result<Vec<User>, ModelRe
 }
 
 pub async fn user_create(user: User) -> Result<(), ModelRepositoryError> {
-    REPOSITORY.get().unwrap()
-        .put_new_item(user.into_attr_map())
-        .await
-        .map_err(|_| ModelRepositoryError {}).map(|_| ())
+    let repository = AWS_DYNAMO_DB_REPOSITORY.get_or_init(DynamoDBSingleTableRepository::new).await;
+    let user_model: HashMap<String, AttributeValue> = user.into_attr_map();
+    let username_model: HashMap<String, AttributeValue> = user.into_attr_map_unique_username();
+
+    let pkey_unique = "attribute_not_exists(Pkey) AND attribute_not_exists(Skey)";
+
+    let user_put = aws_sdk_dynamodb::types::Put::builder()
+        .table_name(repository.table_name.clone())
+        .set_item(Some(user_model))
+        .condition_expression(pkey_unique.to_string())
+        .build();
+
+    let username_put = aws_sdk_dynamodb::types::Put::builder()
+        .table_name(repository.table_name.clone())
+        .set_item(Some(username_model))
+        .condition_expression(pkey_unique.to_string())
+        .build();
+
+    let user_transact = aws_sdk_dynamodb::types::TransactWriteItem::builder()
+        .put(user_put)
+        .build();
+
+    let username_transact = aws_sdk_dynamodb::types::TransactWriteItem::builder()
+        .put(username_put)
+        .build();
+
+        repository.client
+        .transact_write_items()
+        .transact_items(user_transact)
+        .transact_items(username_transact)
+        .send().await.map_err(|err| {
+            println!("Error: {:?}", err);
+            ModelRepositoryError {}
+        }).map(|_| ())
 }
 
-pub async fn user_update_by_email(email: String, user: User) -> Result<User, ModelRepositoryError> {
+pub async fn username_update_by_email(email: String, user: User) -> Result<User, ModelRepositoryError> {
     let update_expression =
-        "SET first = :first, last = :last, username = :username, updated_at = :updated_at";
+        "SET first = :first, last = :last, updated_at = :updated_at";
     let mut attribute_values = HashMap::new();
     attribute_values.insert(":first".to_string(), AttributeValue::S(user.first.clone()));
     attribute_values.insert(":last".to_string(), AttributeValue::S(user.last.clone()));
     attribute_values.insert(
-        ":username".to_string(),
-        AttributeValue::S(user.username.clone()),
-    );
-    attribute_values.insert(
         ":updated_at".to_string(),
         AttributeValue::S(user.updated_at.clone()),
     );
-    REPOSITORY.get().unwrap()
+    AWS_DYNAMO_DB_REPOSITORY.get_or_init(DynamoDBSingleTableRepository::new).await
         .update_item(
             email.to_string(),
             "-".to_string(),
@@ -126,7 +160,7 @@ pub async fn user_update_by_email(email: String, user: User) -> Result<User, Mod
 }
 
 pub async fn user_delete_by_email(email: String) -> Result<User, ModelRepositoryError> {
-    let result = REPOSITORY.get().unwrap()
+    let result = AWS_DYNAMO_DB_REPOSITORY.get_or_init(DynamoDBSingleTableRepository::new).await
         .delete_item(email.to_string(), "-".to_string())
         .await
         .map_err(|_| ModelRepositoryError {})?;

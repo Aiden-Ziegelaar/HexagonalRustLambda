@@ -1,7 +1,4 @@
 use std::fmt;
-use std::sync::OnceLock;
-
-pub static REPOSITORY: OnceLock<dynamo_db_repository::DynamoDBSingleTableRepository> = OnceLock::new();
 
 pub struct ModelRepositoryError {}
 

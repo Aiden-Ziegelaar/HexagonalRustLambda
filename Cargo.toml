@@ -32,6 +32,7 @@ models = { path = "common/driven/models" }
 lambda_adaptor = { path = "common/driving/lambda_adaptor" }
 http_apigw_adaptor = { path = "common/driving/http_apigw_adaptor" }
 dynamo_db_repository = { path = "common/driven/dynamo_db_repository" }
+sdk_credential_meta_repository = { path = "common/driven/sdk_credential_meta_repository" }
 
 [workspace.package]
 version = "0.0.0"

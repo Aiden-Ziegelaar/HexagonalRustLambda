@@ -7,3 +7,8 @@ documentation.workspace = true
 edition.workspace = true
 
 [dependencies]
+
+[features]
+none = []
+default = ["use_dynamo_db_repository"]
+use_dynamo_db_repository = []
