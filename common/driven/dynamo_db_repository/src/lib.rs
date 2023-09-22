@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 use std::fmt;
 
-
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 
 use sdk_credential_meta_repository::{SdkCredentialsMetaRepository, AWS_CREDENTIAL_REPOSITORY};
 use tokio::sync::OnceCell;
 
-pub static AWS_DYNAMO_DB_REPOSITORY: OnceCell<DynamoDBSingleTableRepository> = OnceCell::const_new();
+pub static AWS_DYNAMO_DB_REPOSITORY: OnceCell<DynamoDBSingleTableRepository> =
+    OnceCell::const_new();
 
 #[derive(Debug, Clone)]
 pub struct RepositoryError;
@@ -29,15 +29,18 @@ pub struct DynamoDBSingleTableRepository {
     pub table_name: String,
 }
 
-
 impl DynamoDBSingleTableRepository {
     pub async fn new() -> DynamoDBSingleTableRepository {
-        let table_name =
-            std::env::var("DYNAMO_TABLE_NAME").expect("DYNAMO_TABLE_NAME environment variable not set");
+        let table_name = std::env::var("DYNAMO_TABLE_NAME")
+            .expect("DYNAMO_TABLE_NAME environment variable not set");
         DynamoDBSingleTableRepository {
-            client: Client::new(&AWS_CREDENTIAL_REPOSITORY.get_or_init(
-                SdkCredentialsMetaRepository::new
-            ).await.sdk_config.clone()),
+            client: Client::new(
+                &AWS_CREDENTIAL_REPOSITORY
+                    .get_or_init(SdkCredentialsMetaRepository::new)
+                    .await
+                    .sdk_config
+                    .clone(),
+            ),
             table_name,
         }
     }

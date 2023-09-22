@@ -18,6 +18,10 @@ path = "user_create/http_adaptor.rs"
 name = "user_update"
 path = "user_update/http_adaptor.rs"
 
+[[bin]]
+name = "user_username_update"
+path = "user_username_update/http_adaptor.rs"
+
 [dependencies]
 http = { workspace = true }
 jsonschema = { workspace = true }

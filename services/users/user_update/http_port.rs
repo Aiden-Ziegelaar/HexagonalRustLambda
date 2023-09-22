@@ -73,13 +73,13 @@ pub async fn user_create_post_http_port(
                 .header("content-type", "application/json")
                 .body(serde_json::to_string(&user).unwrap());
             Ok(resp.unwrap())
-        },
+        }
         Err(_) => {
             let resp = Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .header("content-type", "application/json")
                 .body("".to_string());
             Ok(resp.unwrap())
-        },
+        }
     }
 }
