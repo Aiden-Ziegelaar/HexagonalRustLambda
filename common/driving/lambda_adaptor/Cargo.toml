@@ -10,5 +10,5 @@ edition.workspace = true
 
 [features]
 none = []
-default = ["use_dynamo_db_repository"]
-use_dynamo_db_repository = []
+default = ["use_persistance_repository"]
+use_persistance_repository = []

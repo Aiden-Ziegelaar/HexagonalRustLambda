@@ -208,9 +208,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-dynamodb"
-version = "0.30.0"
+version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "069e3c6f367a02ee0af86616b6bf9dcc4f1eab19e11b05d4b0f71da0c86fcd9d"
+checksum = "68c8031724f83eebc927fe26658b9849dd66f2a6c7c30984f1e9adcd42e9e7b9"
 dependencies = [
  "aws-credential-types",
  "aws-http",
@@ -228,6 +228,29 @@ dependencies = [
  "http",
  "regex",
  "tokio-stream",
+ "tracing",
+]
+
+[[package]]
+name = "aws-sdk-eventbridge"
+version = "0.31.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0010a7d130bbd937b54bdf97a95cc71eca7caf161bf0f68f015c999705f26533"
+dependencies = [
+ "aws-credential-types",
+ "aws-http",
+ "aws-runtime",
+ "aws-smithy-async",
+ "aws-smithy-client",
+ "aws-smithy-http",
+ "aws-smithy-json",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "http",
+ "regex",
  "tracing",
 ]
 
@@ -696,16 +719,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dynamo_db_repository"
-version = "0.0.0"
-dependencies = [
- "aws-config",
- "aws-sdk-dynamodb",
- "sdk_credential_meta_repository",
- "tokio",
-]
-
-[[package]]
 name = "either"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -739,6 +752,19 @@ checksum = "aa68f1b12764fab894d2755d2518754e71b4fd80ecfb822714a1206c2aab39bf"
 dependencies = [
  "cc",
  "libc",
+]
+
+[[package]]
+name = "eventing"
+version = "0.0.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-eventbridge",
+ "jsonschema",
+ "sdk_credential_meta_repository",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -1272,8 +1298,8 @@ name = "models"
 version = "0.0.0"
 dependencies = [
  "aws-sdk-dynamodb",
- "dynamo_db_repository",
  "once_cell",
+ "persistance_repository",
  "serde",
  "tokio",
 ]
@@ -1435,6 +1461,16 @@ name = "percent-encoding"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b2a4787296e9989611394c33f193f676704af1686e70b8f8033ab5ba9a35a94"
+
+[[package]]
+name = "persistance_repository"
+version = "0.0.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "sdk_credential_meta_repository",
+ "tokio",
+]
 
 [[package]]
 name = "pin-project"
@@ -2119,7 +2155,6 @@ name = "user_service"
 version = "0.0.0"
 dependencies = [
  "aws-config",
- "dynamo_db_repository",
  "http",
  "http_apigw_adaptor",
  "jsonschema",
@@ -2128,6 +2163,7 @@ dependencies = [
  "lambda_runtime",
  "lazy_static",
  "models",
+ "persistance_repository",
  "query_map",
  "serde",
  "serde_json",

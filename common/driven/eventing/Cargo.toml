@@ -1,13 +1,16 @@
 [package]
-name = "dynamo_db_repository"
+name = "eventing"
 version.workspace = true
 authors.workspace = true
-description = "Repository for interacting with DynamoDB Single Table Design"
+description = "Repository for interacting with Eventing Adaptor"
 documentation.workspace = true
 edition.workspace = true
 
 [dependencies]
 aws-config = { workspace = true }
-aws-sdk-dynamodb = { workspace = true }
+aws-sdk-eventbridge = { workspace = true }
+jsonschema = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 sdk_credential_meta_repository = { workspace = true }
 tokio = { workspace = true }

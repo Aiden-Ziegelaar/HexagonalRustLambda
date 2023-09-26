@@ -1,0 +1,13 @@
+[package]
+name = "persistance_repository"
+version.workspace = true
+authors.workspace = true
+description = "Repository for interacting with Persistance Adaptor"
+documentation.workspace = true
+edition.workspace = true
+
+[dependencies]
+aws-config = { workspace = true }
+aws-sdk-dynamodb = { workspace = true }
+sdk_credential_meta_repository = { workspace = true }
+tokio = { workspace = true }

@@ -3,7 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::ModelRepositoryError;
 use aws_sdk_dynamodb::types::AttributeValue;
-use dynamo_db_repository::{DynamoDBSingleTableRepository, AWS_DYNAMO_DB_REPOSITORY};
+use persistance_repository::{DynamoDBSingleTableRepository, AWS_DYNAMO_DB_REPOSITORY};
 use serde::{Deserialize, Serialize};
 
 // First we define our model
@@ -127,7 +127,7 @@ pub async fn user_get_by_username(username: String) -> Result<Vec<User>, ModelRe
         .get_item_index(
             username.to_string(),
             "-".to_string(),
-            dynamo_db_repository::GSIs::GSI1,
+            persistance_repository::GSIs::GSI1,
         )
         .await
         .map_err(|_| ModelRepositoryError {})?;

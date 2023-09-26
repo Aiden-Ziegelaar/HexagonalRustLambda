@@ -26,12 +26,15 @@ once_cell = { version = "1.4.0" }
 
 # AWS SDK Dependencies
 aws-config = { version = "0.56.1" }
-aws-sdk-dynamodb = { version = "0.30.0" }
+aws-sdk-dynamodb = { version = "0.31.1" }
+aws-sdk-eventbridge = {version = "0.31.1" }
+
 # Local Dependencies
 models = { path = "common/driven/models" }
 lambda_adaptor = { path = "common/driving/lambda_adaptor" }
 http_apigw_adaptor = { path = "common/driving/http_apigw_adaptor" }
-dynamo_db_repository = { path = "common/driven/dynamo_db_repository" }
+persistance_repository = { path = "common/driven/persistance_repository" }
+eventing = { path = "common/driven/eventing" }
 sdk_credential_meta_repository = { path = "common/driven/sdk_credential_meta_repository" }
 
 [workspace.package]
