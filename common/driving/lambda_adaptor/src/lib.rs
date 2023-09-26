@@ -1,6 +1,11 @@
+
+
 #[macro_export]
 macro_rules! lambda_driving_adaptor {
     ($x:ident) => {
+
+        use sdk_credential_meta_repository::{ AWS_CREDENTIAL_REPOSITORY, SdkCredentialsMetaRepository };
+
         #[tokio::main]
         async fn main() -> Result<(), Error> {
             tracing_subscriber::fmt()
@@ -10,6 +15,16 @@ macro_rules! lambda_driving_adaptor {
                 // disabling time is handy because CloudWatch will add the ingestion time.
                 .without_time()
                 .init();
+
+
+            println!("Starting lambda_driving_adaptor");
+
+            let credentials = SdkCredentialsMetaRepository::new().await;
+
+            match AWS_CREDENTIAL_REPOSITORY.set(credentials) {
+                Ok(_) => println!("AWS_CREDENTIAL_REPOSITORY set"),
+                Err(_) => println!("AWS_CREDENTIAL_REPOSITORY already set before init"),
+            };
 
             run(service_fn($x)).await
         }

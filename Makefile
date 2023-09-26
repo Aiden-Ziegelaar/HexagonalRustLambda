@@ -14,6 +14,9 @@ build-debug:
 build-production:
 	cargo lambda build --arm64 --release
 
+test:
+	cargo test
+
 init:
 	terraform -chdir=infra init
 

@@ -9,21 +9,21 @@ use serde::{Deserialize, Serialize};
 // First we define our model
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    first: String,
-    last: String,
-    email: String,
-    username: String,
+    pub first: String,
+    pub last: String,
+    pub email: String,
+    pub username: String,
     #[serde(default = "default_time")]
-    created_at: String,
+    pub created_at: String,
     #[serde(default = "default_time")]
-    updated_at: String,
+    pub updated_at: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MutableUser {
-    email: String,
-    first: Option<String>,
-    last: Option<String>,
+    pub email: String,
+    pub first: Option<String>,
+    pub last: Option<String>,
 }
 
 fn default_time() -> String {
@@ -139,7 +139,7 @@ pub async fn user_get_by_username(username: String) -> Result<Vec<User>, ModelRe
         .collect())
 }
 
-pub async fn user_create(user: User) -> Result<(), ModelRepositoryError> {
+pub async fn user_create(user: User) -> Result<User, ModelRepositoryError> {
     let repository = AWS_DYNAMO_DB_REPOSITORY
         .get_or_init(DynamoDBSingleTableRepository::new)
         .await;
@@ -179,7 +179,9 @@ pub async fn user_create(user: User) -> Result<(), ModelRepositoryError> {
             println!("Error: {:?}", err);
             ModelRepositoryError {}
         })
-        .map(|_| ())
+        .map(|_| {
+            user
+        })
 }
 
 pub async fn user_update_by_email(user: MutableUser) -> Result<User, ModelRepositoryError> {

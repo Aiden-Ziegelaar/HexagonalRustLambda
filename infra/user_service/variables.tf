@@ -27,3 +27,13 @@ variable "api_gateway_execution_arn" {
     type = string
     nullable = false
 }
+
+variable "event_bus_arn" {
+    type = string
+    nullable = false
+}
+
+variable "event_bus_policy_arn" {
+    type = string
+    nullable = false
+}

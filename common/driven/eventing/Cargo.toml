@@ -7,6 +7,7 @@ documentation.workspace = true
 edition.workspace = true
 
 [dependencies]
+# core
 aws-config = { workspace = true }
 aws-sdk-eventbridge = { workspace = true }
 jsonschema = { workspace = true }
@@ -14,3 +15,5 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 sdk_credential_meta_repository = { workspace = true }
 tokio = { workspace = true }
+# Monorepo
+models = { workspace = true }

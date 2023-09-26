@@ -9,3 +9,4 @@ edition.workspace = true
 [dependencies]
 http = { workspace = true }
 lambda_http = { workspace = true }
+lambda_adaptor = { workspace = true }

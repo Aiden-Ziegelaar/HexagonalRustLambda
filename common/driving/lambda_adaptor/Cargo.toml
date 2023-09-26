@@ -7,8 +7,7 @@ documentation.workspace = true
 edition.workspace = true
 
 [dependencies]
+sdk_credential_meta_repository = { workspace = true }
 
 [features]
 none = []
-default = ["use_persistance_repository"]
-use_persistance_repository = []

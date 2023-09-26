@@ -39,6 +39,10 @@ impl lambda_http::IntoResponse for HttpPortResponse<Vec<u8>> {
 #[macro_export]
 macro_rules! http_lambda_driving_adaptor {
     ($x:ident) => {
+        use lambda_adaptor::lambda_driving_adaptor;
+        use lambda_http::{run, service_fn, Error, IntoResponse, RequestExt};
+        use query_map::QueryMap;
+        
         async fn http_lambda_driving_adaptor(
             event: lambda_http::Request,
         ) -> Result<lambda_http::Response<lambda_http::Body>, Error> {

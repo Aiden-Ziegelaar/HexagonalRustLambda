@@ -761,6 +761,7 @@ dependencies = [
  "aws-config",
  "aws-sdk-eventbridge",
  "jsonschema",
+ "models",
  "sdk_credential_meta_repository",
  "serde",
  "serde_json",
@@ -1015,6 +1016,7 @@ name = "http_apigw_adaptor"
 version = "0.0.0"
 dependencies = [
  "http",
+ "lambda_adaptor",
  "lambda_http",
 ]
 
@@ -1164,6 +1166,9 @@ dependencies = [
 [[package]]
 name = "lambda_adaptor"
 version = "0.0.0"
+dependencies = [
+ "sdk_credential_meta_repository",
+]
 
 [[package]]
 name = "lambda_http"
@@ -2155,6 +2160,7 @@ name = "user_service"
 version = "0.0.0"
 dependencies = [
  "aws-config",
+ "eventing",
  "http",
  "http_apigw_adaptor",
  "jsonschema",
@@ -2165,6 +2171,7 @@ dependencies = [
  "models",
  "persistance_repository",
  "query_map",
+ "sdk_credential_meta_repository",
  "serde",
  "serde_json",
  "tokio",
