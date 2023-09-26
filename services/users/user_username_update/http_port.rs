@@ -73,7 +73,7 @@ pub async fn user_create_post_http_port(
     match user_username_update_core(user_updates.email, user_updates.username).await {
         Ok(user) => {
             let resp = Response::builder()
-                .status(StatusCode::CREATED)
+                .status(StatusCode::OK)
                 .header("content-type", "application/json")
                 .body(serde_json::to_string(&user).unwrap());
             Ok(resp.unwrap())

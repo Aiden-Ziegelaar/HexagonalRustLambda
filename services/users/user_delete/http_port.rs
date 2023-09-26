@@ -1,23 +1,16 @@
-use crate::domain::user_update_core;
+use crate::domain::user_delete_core;
 
 use http::{Error, Response, StatusCode};
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;
-use models::models::user::MutableUser;
 use query_map::QueryMap;
 use serde_json::json;
 
 lazy_static! {
-    static ref USER_SCHEMA: JSONSchema = {
+    static ref USER_EMAIL_SCHEMA: JSONSchema = {
         let schema = json!({
             "type": "object",
             "properties": {
-                "first": {
-                    "type": "string"
-                },
-                "last": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 }
@@ -51,7 +44,7 @@ pub async fn user_create_post_http_port(
     }
     let payload_str = payload.clone().unwrap();
     let payload_json = serde_json::from_str::<serde_json::Value>(&payload_str).unwrap();
-    let result = USER_SCHEMA.validate(&payload_json);
+    let result = USER_EMAIL_SCHEMA.validate(&payload_json);
     match result {
         Ok(_) => {}
         Err(e) => {
@@ -65,8 +58,7 @@ pub async fn user_create_post_http_port(
             return Ok(resp.unwrap());
         }
     }
-    let user_updates = serde_json::from_str::<MutableUser>(&payload_str).unwrap();
-    match user_update_core(user_updates).await {
+    match user_delete_core(payload_json["email"].to_string()).await {
         Ok(user) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

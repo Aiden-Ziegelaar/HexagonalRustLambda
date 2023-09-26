@@ -2,16 +2,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ EVENTING, EventingRepository };
 
-const EVENT_TYPE: &str = "user_created";
+const EVENT_TYPE: &str = "user_deleted";
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct EventUserCreatedV1 {
+pub struct EventUserDeletedV1 {
     pub version: u32,
     pub event_type: String,
     pub user: models::models::user::User
 }
 
-impl EventUserCreatedV1 {
+impl EventUserDeletedV1 {
     pub fn new(user: models::models::user::User) -> Self {
         Self { 
             version: 1, 

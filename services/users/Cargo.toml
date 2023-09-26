@@ -19,6 +19,14 @@ name = "user_update"
 path = "user_update/http_adaptor.rs"
 
 [[bin]]
+name = "user_delete"
+path = "user_delete/http_adaptor.rs"
+
+[[bin]]
+name = "user_get"
+path = "user_get/http_adaptor.rs"
+
+[[bin]]
 name = "user_username_update"
 path = "user_username_update/http_adaptor.rs"
 

@@ -7,7 +7,7 @@ use persistance_repository::{DynamoDBSingleTableRepository, AWS_DYNAMO_DB_REPOSI
 use serde::{Deserialize, Serialize};
 
 // First we define our model
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub first: String,
     pub last: String,
@@ -19,7 +19,7 @@ pub struct User {
     pub updated_at: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MutableUser {
     pub email: String,
     pub first: Option<String>,

@@ -44,13 +44,13 @@ pub async fn user_create_post_http_port(
     _path_params: &QueryMap,
     _query_params: &QueryMap,
     payload: &Option<String>,
-) -> Result<Response<()>, Error> {
+) -> Result<Response<String>, Error> {
     match payload {
         None => {
             let resp = Response::builder()
                 .status(StatusCode::BAD_REQUEST)
                 .header("content-type", "application/json")
-                .body(());
+                .body("".to_string());
             return Ok(resp.unwrap());
         }
         Some(_) => {}
@@ -67,25 +67,25 @@ pub async fn user_create_post_http_port(
             let resp = Response::builder()
                 .status(StatusCode::BAD_REQUEST)
                 .header("content-type", "application/json")
-                .body(());
-            return Ok(resp.unwrap());
+                .body("".to_string());
+            return Ok(resp.unwrap())
         }
     }
     let user = serde_json::from_str::<User>(&payload_str).unwrap();
     match user_create_core(user).await {
-        Ok(_) => {
+        Ok(result) => {
             let resp = Response::builder()
                 .status(StatusCode::CREATED)
                 .header("content-type", "application/json")
-                .body(());
-            Ok(resp.unwrap())
+                .body(serde_json::to_string(&result).unwrap());
+            return Ok(resp.unwrap());
         }
         Err(_) => {
             let resp = Response::builder()
                 .status(StatusCode::CONFLICT)
                 .header("content-type", "application/json")
-                .body(());
-            Ok(resp.unwrap())
+                .body("".to_string());
+            return Ok(resp.unwrap());
         }
     }
 }
