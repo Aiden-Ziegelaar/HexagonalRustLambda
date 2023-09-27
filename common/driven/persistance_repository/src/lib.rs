@@ -56,8 +56,8 @@ impl DynamoDBSingleTableRepository {
             .client
             .get_item()
             .table_name(self.table_name.clone())
-            .key("p_key", p_key_att)
-            .key("s_key", s_key_att)
+            .key("Pkey", p_key_att)
+            .key("Skey", s_key_att)
             .send()
             .await;
         if result.is_err() {

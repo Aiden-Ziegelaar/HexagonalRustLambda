@@ -19,6 +19,7 @@ macro_rules! lambda_driving_adaptor {
 
             println!("Starting lambda_driving_adaptor");
 
+            // For some reason this takes more than half a second if done anywhere but here :(
             let credentials = SdkCredentialsMetaRepository::new().await;
 
             match AWS_CREDENTIAL_REPOSITORY.set(credentials) {

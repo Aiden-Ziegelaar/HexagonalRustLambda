@@ -25,11 +25,22 @@ pub async fn user_get_get_http_port(
     };
     match user_get_core(email.to_string()).await {
         Ok(user) => {
-            let resp = Response::builder()
-                .status(StatusCode::OK)
-                .header("content-type", "application/json")
-                .body(serde_json::to_string(&user).unwrap());
-            Ok(resp.unwrap())
+            match user {
+                Some(result) => {
+                    let resp = Response::builder()
+                        .status(StatusCode::OK)
+                        .header("content-type", "application/json")
+                        .body(serde_json::to_string(&result).unwrap());
+                    Ok(resp.unwrap())
+                },
+                None => {
+                    let resp = Response::builder()
+                        .status(StatusCode::NOT_FOUND)
+                        .header("content-type", "application/json")
+                        .body("".to_string());
+                    Ok(resp.unwrap())
+                },
+            }
         }
         Err(_) => {
             let resp = Response::builder()

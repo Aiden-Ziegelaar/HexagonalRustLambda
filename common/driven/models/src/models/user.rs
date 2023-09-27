@@ -110,14 +110,22 @@ impl MutableUser {
 }
 
 // Conceptually the call signatures of these functions are our "ports" and the implementations are our "adaptors"
-pub async fn user_get_by_email(email: String) -> Result<User, ModelRepositoryError> {
+pub async fn user_get_by_email(email: String) -> Result<Option<User>, ModelRepositoryError> {
     let result = AWS_DYNAMO_DB_REPOSITORY
         .get_or_init(DynamoDBSingleTableRepository::new)
         .await
-        .get_item_primary(email.to_string(), "-".to_string())
+        .get_item_primary(format!("user_{}", email.to_string()), "-".to_string())
         .await
-        .map_err(|_| ModelRepositoryError {})?;
-    Ok(User::from_attr_map(result.item.unwrap()))
+        .map_err(|_| ModelRepositoryError {});
+    match result {
+        Ok(x) => {
+            match x.item {
+                Some(y) => Ok(Some(User::from_attr_map(y))),
+                None => Ok(None),
+            }
+        },
+        Err(_) => Err(ModelRepositoryError {}),
+    }
 }
 
 pub async fn user_get_by_username(username: String) -> Result<Vec<User>, ModelRepositoryError> {
