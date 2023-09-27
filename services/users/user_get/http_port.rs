@@ -4,7 +4,7 @@ use http::{Error, Response, StatusCode};
 use query_map::QueryMap;
 use serde_json::json;
 
-pub async fn user_create_post_http_port(
+pub async fn user_get_get_http_port(
     _path_params: &QueryMap,
     query_params: &QueryMap,
     _payload: &Option<String>,

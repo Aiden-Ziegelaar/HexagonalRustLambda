@@ -38,7 +38,7 @@ struct UserUsernameUpdate {
     username: String,
 }
 
-pub async fn user_create_post_http_port(
+pub async fn user_username_update_put_http_port(
     _path_params: &QueryMap,
     _query_params: &QueryMap,
     payload: &Option<String>,

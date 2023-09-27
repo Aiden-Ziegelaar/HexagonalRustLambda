@@ -34,7 +34,7 @@ lazy_static! {
     };
 }
 
-pub async fn user_create_post_http_port(
+pub async fn user_update_put_http_port(
     _path_params: &QueryMap,
     _query_params: &QueryMap,
     payload: &Option<String>,
