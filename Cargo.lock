@@ -755,6 +755,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "error"
+version = "0.0.0"
+
+[[package]]
 name = "eventing"
 version = "0.0.0"
 dependencies = [
@@ -1303,6 +1307,7 @@ name = "models"
 version = "0.0.0"
 dependencies = [
  "aws-sdk-dynamodb",
+ "error",
  "once_cell",
  "persistance_repository",
  "serde",
@@ -1473,6 +1478,8 @@ version = "0.0.0"
 dependencies = [
  "aws-config",
  "aws-sdk-dynamodb",
+ "error",
+ "http",
  "sdk_credential_meta_repository",
  "tokio",
 ]

@@ -4,7 +4,8 @@ members = [
   "services/users",
   # Common Library Definitions
   "common/driving/*",
-  "common/driven/*"
+  "common/driven/*",
+  "common/error"
 ]
 resolver = "2"
 
@@ -37,6 +38,7 @@ http_apigw_adaptor = { path = "common/driving/http_apigw_adaptor" }
 persistance_repository = { path = "common/driven/persistance_repository" }
 eventing = { path = "common/driven/eventing" }
 sdk_credential_meta_repository = { path = "common/driven/sdk_credential_meta_repository" }
+error = { path = "common/error" }
 
 [workspace.package]
 version = "0.0.0"

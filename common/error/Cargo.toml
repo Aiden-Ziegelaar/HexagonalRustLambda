@@ -1,0 +1,7 @@
+[package]
+name = "error"
+version.workspace = true
+authors.workspace = true
+description = "Common error language throughout the project"
+documentation.workspace = true
+edition.workspace = true

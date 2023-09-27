@@ -9,5 +9,7 @@ edition.workspace = true
 [dependencies]
 aws-config = { workspace = true }
 aws-sdk-dynamodb = { workspace = true }
+http = { workspace = true }
 sdk_credential_meta_repository = { workspace = true }
 tokio = { workspace = true }
+error = { workspace = true }

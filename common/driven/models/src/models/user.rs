@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::ModelRepositoryError;
+use aws_sdk_dynamodb::types::error::ConditionalCheckFailedException;
+use error::HexagonalError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use persistance_repository::{DynamoDBSingleTableRepository, AWS_DYNAMO_DB_REPOSITORY};
 use serde::{Deserialize, Serialize};
@@ -110,13 +111,13 @@ impl MutableUser {
 }
 
 // Conceptually the call signatures of these functions are our "ports" and the implementations are our "adaptors"
-pub async fn user_get_by_email(email: String) -> Result<Option<User>, ModelRepositoryError> {
+pub async fn user_get_by_email(email: String) -> Result<Option<User>, HexagonalError> {
     let result = AWS_DYNAMO_DB_REPOSITORY
         .get_or_init(DynamoDBSingleTableRepository::new)
         .await
         .get_item_primary(format!("user_{}", email.to_string()), "-".to_string())
-        .await
-        .map_err(|_| ModelRepositoryError {});
+        .await;
+
     match result {
         Ok(x) => {
             match x.item {
@@ -124,11 +125,15 @@ pub async fn user_get_by_email(email: String) -> Result<Option<User>, ModelRepos
                 None => Ok(None),
             }
         },
-        Err(_) => Err(ModelRepositoryError {}),
+        Err(err) => Err(HexagonalError {
+            error: error::HexagonalErrorCode::NotFound,
+            message: "Unable to fetch user, error in get call".to_string(),
+            trace: err.to_string()
+        }),
     }
 }
 
-pub async fn user_get_by_username(username: String) -> Result<Vec<User>, ModelRepositoryError> {
+pub async fn user_get_by_username(username: String) -> Result<Vec<User>, HexagonalError> {
     let result = AWS_DYNAMO_DB_REPOSITORY
         .get_or_init(DynamoDBSingleTableRepository::new)
         .await
@@ -137,17 +142,35 @@ pub async fn user_get_by_username(username: String) -> Result<Vec<User>, ModelRe
             "-".to_string(),
             persistance_repository::GSIs::GSI1,
         )
-        .await
-        .map_err(|_| ModelRepositoryError {})?;
-    Ok(result
-        .items
-        .unwrap()
-        .iter()
-        .map(|x| User::from_attr_map(x.clone()))
-        .collect())
+        .await;
+
+    match result {
+        Ok(x) => {
+            match x.items {
+                Some(y) => {
+                    let mut users = Vec::new();
+                    for user in y {
+                        users.push(User::from_attr_map(user));
+                    }
+                    Ok(users)
+                },
+                None => Err(HexagonalError {
+                    error: error::HexagonalErrorCode::NotFound,
+                    message: "Unable to fetch user, does not exist".to_string(),
+                    trace: "".to_string()
+                })
+            }
+        },
+        Err(err) => Err(HexagonalError {
+            error: error::HexagonalErrorCode::NotFound,
+            message: "Unable to fetch user, error in get call".to_string(),
+            trace: err.to_string()
+        }),
+    }        
 }
 
-pub async fn user_create(user: User) -> Result<User, ModelRepositoryError> {
+
+pub async fn user_create(user: User) -> Result<User, HexagonalError> {
     let repository = AWS_DYNAMO_DB_REPOSITORY
         .get_or_init(DynamoDBSingleTableRepository::new)
         .await;
@@ -184,36 +207,93 @@ pub async fn user_create(user: User) -> Result<User, ModelRepositoryError> {
         .send()
         .await
         .map_err(|err| {
-            println!("Error: {:?}", err);
-            ModelRepositoryError {}
+            let err_trace = err.to_string();
+            if err.into_source().unwrap().downcast_ref::<ConditionalCheckFailedException>().is_some() {
+                HexagonalError {
+                    error: error::HexagonalErrorCode::Conflict,
+                    message: "Unable to create user, user already exists".to_string(),
+                    trace:  err_trace
+                }
+            } else {
+                HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "Unable to create user, error in transaction write call".to_string(),
+                    trace:  err_trace
+                }
+            }
         })
         .map(|_| {
             user
         })
 }
 
-pub async fn user_update_by_email(user: MutableUser) -> Result<User, ModelRepositoryError> {
-    let update_expression = "SET first = :first, last = :last, updated_at = :updated_at";
+pub async fn user_update_by_email(user: MutableUser) -> Result<User, HexagonalError> {
 
-    AWS_DYNAMO_DB_REPOSITORY
+    let mut update_expression = "SET ".to_string();
+    let mut attr_names = HashMap::new();
+
+    match user.first {
+        Some(_) => {
+            update_expression.push_str("#first_key = :first, ");
+            attr_names.insert("#first_key".to_string(), "first".to_string());
+        }
+        None => {}
+    }
+
+    match user.last {
+        Some(_) => {
+            update_expression.push_str("#last_key = :last, ");
+            attr_names.insert("#last_key".to_string(), "last".to_string());
+        }
+        None => {}
+    }
+
+    update_expression.push_str("updated_at = :updated_at");
+
+    let result = AWS_DYNAMO_DB_REPOSITORY
         .get_or_init(DynamoDBSingleTableRepository::new)
         .await
         .update_item(
-            user.email.to_string(),
+            format!("user_{}", user.email.to_string()),
             "-".to_string(),
             update_expression.to_string(),
-            None,
+            Some(attr_names),
             Some(user.into_attr_map()),
         )
-        .await
-        .map(|x| User::from_attr_map(x.attributes.unwrap()))
-        .map_err(|_| ModelRepositoryError {})
+        .await;
+
+    match result {
+        Ok(x) => {
+            match x.attributes {
+                Some(y) => Ok(User::from_attr_map(y)),
+                None => Err(HexagonalError {
+                    error: error::HexagonalErrorCode::Unkown,
+                    message: "User attributes were not returned".to_string(),
+                    trace: "".to_string()
+                }),
+            }
+        },
+        Err(err) => Err(
+            if err.is_conditional_check_failed_exception() {
+                HexagonalError{
+                    error: error::HexagonalErrorCode::NotFound,
+                    message: "Unable to update user, does not exist".to_string(),
+                    trace: err.to_string()
+                }
+            } else {
+                HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "Unable to update user, error in put call".to_string(),
+                    trace: err.to_string()
+                }
+        }),
+    }
 }
 
 pub async fn user_update_username_by_email(
     email: String,
     new_username: String,
-) -> Result<(), ModelRepositoryError> {
+) -> Result<(), HexagonalError> {
     let repository = AWS_DYNAMO_DB_REPOSITORY
         .get_or_init(DynamoDBSingleTableRepository::new)
         .await;
@@ -276,16 +356,51 @@ pub async fn user_update_username_by_email(
         .transact_items(username_delete_action)
         .send()
         .await
-        .map_err(|_| ModelRepositoryError {})
+        .map_err(|err| {
+            let err_trace = err.to_string();
+            if err.into_source().unwrap().downcast_ref::<ConditionalCheckFailedException>().is_some() {
+                HexagonalError {
+                    error: error::HexagonalErrorCode::Conflict,
+                    message: "Unable to change username, username is already taken".to_string(),
+                    trace:  err_trace
+                }
+            } else {
+                HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "Unable to update username, error in transaction write call".to_string(),
+                    trace:  err_trace
+                }
+            }
+        })
         .map(|_| ())
 }
 
-pub async fn user_delete_by_email(email: String) -> Result<User, ModelRepositoryError> {
+pub async fn user_delete_by_email(email: String) -> Result<User, HexagonalError> {
     let result = AWS_DYNAMO_DB_REPOSITORY
         .get_or_init(DynamoDBSingleTableRepository::new)
         .await
         .delete_item(email.to_string(), "-".to_string())
         .await
-        .map_err(|_| ModelRepositoryError {})?;
-    Ok(User::from_attr_map(result.attributes.unwrap()))
+        .map_err(|_| HexagonalError {
+            error: error::HexagonalErrorCode::AdaptorError,
+            message: "Unable to delete user, error in delete call".to_string(),
+            trace: "".to_string()
+        });
+    match result {
+        Ok(x) => {
+            match x.attributes {
+                Some(y) => Ok(User::from_attr_map(y)),
+                None => Err(HexagonalError {
+                    error: error::HexagonalErrorCode::NotFound,
+                    message: "Unable to delete user, does not exist".to_string(),
+                    trace: "".to_string()
+                }),
+            }
+        },
+        Err(err) => Err(HexagonalError {
+            error: error::HexagonalErrorCode::AdaptorError,
+            message: "Unable to delete user, error in delete call".to_string(),
+            trace: err.to_string()
+        }),
+    }
 }
