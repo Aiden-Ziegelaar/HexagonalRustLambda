@@ -26,7 +26,7 @@ plan:
 	terraform -chdir=infra plan
 
 deploy:
-	terraform -chdir=infra apply
+	terraform -chdir=infra apply -auto-approve
 
 destroy:
 	terraform -chdir=infra destroy
@@ -35,7 +35,9 @@ build-deploy: build-production deploy
 
 build-deploy-x86:
 	cargo lambda build --x86-64 --release
-	terraform -chdir=infra apply -var="architectures=[\"x86_64\"]"
+	terraform -chdir=infra apply -var="architectures=[\"x86_64\"]" -auto-approve
+
+build-deploy-test: build-production deploy test-int
 
 load-test:
 	cd test && npm run load-test

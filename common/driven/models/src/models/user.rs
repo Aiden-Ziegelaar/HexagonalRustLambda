@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use aws_sdk_dynamodb::types::error::{
     ConditionalCheckFailedException, TransactionCanceledException,
@@ -8,6 +7,8 @@ use aws_sdk_dynamodb::types::AttributeValue;
 use error::HexagonalError;
 use persistance_repository::DynamoDBSingleTableRepository;
 use serde::{Deserialize, Serialize};
+
+use crate::default_time;
 
 // First we define our model
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -27,14 +28,6 @@ pub struct MutableUser {
     pub email: String,
     pub first: Option<String>,
     pub last: Option<String>,
-}
-
-fn default_time() -> String {
-    let start = SystemTime::now();
-    let since_the_epoch = start
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards");
-    since_the_epoch.as_secs().to_string()
 }
 
 // Adaptor Transform Traits

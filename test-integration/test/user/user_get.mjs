@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 
 describe('Get User', function () {
     it('should get a user thats just been created', async function () {
+        //arrange
         let user = {
             first: faker.person.firstName(),
             last: faker.person.lastName(),
@@ -11,24 +12,30 @@ describe('Get User', function () {
             username: faker.internet.userName(),
         }
 
+        //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
         let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user`,
             { params: { email: user.email } }
         )
 
+        //assert
         assert.equal(res.status, 200)
         expect(res.data).to.include(user)
     })
 
     it('should fail to get a user that doesn\'t exist', async function () {
+        //arrange
+
+        //act
         let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user`,
             { 
                 params: { email: faker.internet.email() },
                 validateStatus: () => true,
             }
         )
-
+        
+        //assert
         assert.equal(res.status, 404)
     })
 });

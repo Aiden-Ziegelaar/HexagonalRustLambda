@@ -52,3 +52,4 @@ sdk_credential_meta_repository = { workspace = true }
 aws-config = { workspace = true }
 error = { workspace = true }
 regex = { workspace = true }
+mockall = { workspace = true }

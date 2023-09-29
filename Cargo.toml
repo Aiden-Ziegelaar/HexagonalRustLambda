@@ -43,6 +43,9 @@ eventing = { path = "common/driven/eventing" }
 sdk_credential_meta_repository = { path = "common/driven/sdk_credential_meta_repository" }
 error = { path = "common/error" }
 
+# Testing Dependencies
+mockall = { version = "0.11.4" }
+
 [workspace.package]
 version = "0.0.0"
 authors = ["Aiden Ziegelaar"]
