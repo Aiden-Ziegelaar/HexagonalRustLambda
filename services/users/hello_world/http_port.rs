@@ -1,13 +1,11 @@
 use crate::domain::hello_world_core;
 use http::{Error, Response, StatusCode};
-use query_map::QueryMap;
+use http_apigw_adaptor::HttpPortRequest;
 
 pub async fn hello_world_get_http_port(
-    _path_params: &QueryMap,
-    query_params: &QueryMap,
-    _payload: &Option<String>,
+    request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let who = query_params.first("who");
+    let who = request.query_string_parameters.first("who");
     let result = hello_world_core(who).await;
     let resp = Response::builder()
         .status(StatusCode::OK)

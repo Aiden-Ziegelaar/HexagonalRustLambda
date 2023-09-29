@@ -5,3 +5,8 @@ authors.workspace = true
 description = "Common error language throughout the project"
 documentation.workspace = true
 edition.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+http = { workspace = true }

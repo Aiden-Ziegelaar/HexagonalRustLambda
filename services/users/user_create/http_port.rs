@@ -1,10 +1,12 @@
 use crate::domain::user_create_core;
 
+use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
+use http_apigw_adaptor::HttpPortRequest;
+use http_port_tools::http_payload_decoder;
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;
-use models::models::user::User;
-use query_map::QueryMap;
+use models::models::user::{User, UserRepositoryPort};
 use serde_json::json;
 
 lazy_static! {
@@ -40,52 +42,24 @@ lazy_static! {
     };
 }
 
-pub async fn user_create_post_http_port(
-    _path_params: &QueryMap,
-    _query_params: &QueryMap,
-    payload: &Option<String>,
+pub async fn user_create_post_http_port<T1: UserRepositoryPort, T2: EventingPort>(
+    user_repository_port: &T1,
+    eventing_port: &T2,
+    http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    match payload {
-        None => {
-            let resp = Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .header("content-type", "application/json")
-                .body("".to_string());
-            return Ok(resp.unwrap());
-        }
-        Some(_) => {}
-    }
-    let payload_str = payload.clone().unwrap();
-    let payload_json = serde_json::from_str::<serde_json::Value>(&payload_str).unwrap();
-    let result = USER_SCHEMA.validate(&payload_json);
-    match result {
-        Ok(_) => {}
-        Err(e) => {
-            e.enumerate().for_each(|x| {
-                println!("Validation error: {}", x.1);
-            });
-            let resp = Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .header("content-type", "application/json")
-                .body("".to_string());
-            return Ok(resp.unwrap())
-        }
-    }
-    let user = serde_json::from_str::<User>(&payload_str).unwrap();
-    match user_create_core(user).await {
+    let payload = http_request.payload;
+    let user = http_payload_decoder!(User, USER_SCHEMA, payload);
+    match user_create_core(user_repository_port, eventing_port, user).await {
         Ok(result) => {
             let resp = Response::builder()
                 .status(StatusCode::CREATED)
                 .header("content-type", "application/json")
                 .body(serde_json::to_string(&result).unwrap());
-            return Ok(resp.unwrap());
+            Ok(resp.unwrap())
         }
-        Err(_) => {
-            let resp = Response::builder()
-                .status(StatusCode::CONFLICT)
-                .header("content-type", "application/json")
-                .body("".to_string());
-            return Ok(resp.unwrap());
+        Err(err) => {
+            println!("Error: {}", err);
+            Ok(err.compile_to_http_response())
         }
     }
 }

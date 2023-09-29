@@ -1,0 +1,20 @@
+{
+  "name": "test-integration",
+  "version": "1.0.0",
+  "description": "Test harness for deployed cloud resources",
+  "type": "module",
+  "scripts": {
+    "test": "mocha --recursive --require global_hooks.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.6",
+    "chai": "^4.3.8",
+    "mocha": "^10.2.0"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^8.1.0",
+    "axios": "^1.5.1"
+  }
+}

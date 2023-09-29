@@ -1,0 +1,7 @@
+[package]
+name = "http_port_tools"
+version.workspace = true
+authors.workspace = true
+description = "Tools for use inside HTTP ports"
+documentation.workspace = true
+edition.workspace = true

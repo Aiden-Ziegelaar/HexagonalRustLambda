@@ -8,7 +8,7 @@ use aws_sdk_dynamodb::operation::update_item::UpdateItemError;
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 
-use sdk_credential_meta_repository::{SdkCredentialsMetaRepository, AWS_CREDENTIAL_REPOSITORY};
+use sdk_credential_meta_repository::SdkCredentialsMetaRepository;
 use tokio::sync::OnceCell;
 
 pub static AWS_DYNAMO_DB_REPOSITORY: OnceCell<DynamoDBSingleTableRepository> =
@@ -25,17 +25,13 @@ pub struct DynamoDBSingleTableRepository {
 }
 
 impl DynamoDBSingleTableRepository {
-    pub async fn new() -> DynamoDBSingleTableRepository {
+    pub fn new(
+        sdk_credential_meta_repository: SdkCredentialsMetaRepository,
+    ) -> DynamoDBSingleTableRepository {
         let table_name = std::env::var("DYNAMO_TABLE_NAME")
             .expect("DYNAMO_TABLE_NAME environment variable not set");
         DynamoDBSingleTableRepository {
-            client: Client::new(
-                &AWS_CREDENTIAL_REPOSITORY
-                    .get_or_init(SdkCredentialsMetaRepository::new)
-                    .await
-                    .sdk_config
-                    .clone(),
-            ),
+            client: Client::new(&sdk_credential_meta_repository.sdk_config.clone()),
             table_name,
         }
     }
@@ -47,8 +43,7 @@ impl DynamoDBSingleTableRepository {
     ) -> Result<aws_sdk_dynamodb::operation::get_item::GetItemOutput, GetItemError> {
         let p_key_att = AttributeValue::S(p_key);
         let s_key_att = AttributeValue::S(s_key);
-        self
-            .client
+        self.client
             .get_item()
             .table_name(self.table_name.clone())
             .key("Pkey", p_key_att)
@@ -66,8 +61,7 @@ impl DynamoDBSingleTableRepository {
     ) -> Result<aws_sdk_dynamodb::operation::query::QueryOutput, QueryError> {
         let p_key_att = AttributeValue::S(p_key);
         let s_key_att = AttributeValue::S(s_key);
-        self
-            .client
+        self.client
             .query()
             .table_name(self.table_name.clone())
             .index_name(match index {
@@ -78,8 +72,8 @@ impl DynamoDBSingleTableRepository {
                 GSIs::GSI1 => "GSI1Pkey = :p_key AND GSI1Skey = :s_key",
                 GSIs::GSI2 => "GSI2Pkey = :p_key AND GSI2Skey = :s_key",
             })
-            .expression_attribute_values("p_key", p_key_att)
-            .expression_attribute_values("s_key", s_key_att)
+            .expression_attribute_values("Pkey", p_key_att)
+            .expression_attribute_values("Skey", s_key_att)
             .send()
             .await
             .map_err(|e| e.into_service_error())
@@ -92,12 +86,11 @@ impl DynamoDBSingleTableRepository {
     ) -> Result<aws_sdk_dynamodb::operation::delete_item::DeleteItemOutput, DeleteItemError> {
         let p_key_att = AttributeValue::S(p_key);
         let s_key_att = AttributeValue::S(s_key);
-        self
-            .client
+        self.client
             .delete_item()
             .table_name(self.table_name.clone())
-            .key("p_key", p_key_att)
-            .key("s_key", s_key_att)
+            .key("Pkey", p_key_att)
+            .key("Skey", s_key_att)
             .send()
             .await
             .map_err(|e| e.into_service_error())
@@ -107,8 +100,7 @@ impl DynamoDBSingleTableRepository {
         &self,
         payload: HashMap<String, AttributeValue>,
     ) -> Result<aws_sdk_dynamodb::operation::put_item::PutItemOutput, PutItemError> {
-        self
-            .client
+        self.client
             .put_item()
             .table_name(self.table_name.clone())
             .set_item(Option::Some(payload))
@@ -128,8 +120,7 @@ impl DynamoDBSingleTableRepository {
     ) -> Result<aws_sdk_dynamodb::operation::update_item::UpdateItemOutput, UpdateItemError> {
         let p_key_att = AttributeValue::S(p_key);
         let s_key_att = AttributeValue::S(s_key);
-        self
-            .client
+        self.client
             .update_item()
             .table_name(self.table_name.clone())
             .key("Pkey", p_key_att)

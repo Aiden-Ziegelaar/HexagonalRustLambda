@@ -1,7 +1,9 @@
-use models::models::user::{user_get_by_email, User};
+use error::HexagonalError;
+use models::models::user::{User, UserRepositoryPort};
 
-pub async fn user_get_core(email: String) -> Result<Option<User>, &'static str> {
-    user_get_by_email(email)
-        .await
-        .map_err(|_| "Unable to fetch user")
+pub async fn user_get_core<T1: UserRepositoryPort>(
+    user_repository_port: &T1,
+    email: String,
+) -> Result<Option<User>, HexagonalError> {
+    user_repository_port.user_get_by_email(email).await
 }

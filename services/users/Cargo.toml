@@ -46,6 +46,9 @@ lambda_runtime = { workspace = true }
 http_apigw_adaptor = { workspace = true }
 lambda_adaptor = { workspace = true }
 persistance_repository = { workspace = true}
+http_port_tools = { workspace = true }
 eventing = { workspace = true}
 sdk_credential_meta_repository = { workspace = true }
 aws-config = { workspace = true }
+error = { workspace = true }
+regex = { workspace = true }

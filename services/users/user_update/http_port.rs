@@ -1,10 +1,12 @@
 use crate::domain::user_update_core;
 
+use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
+use http_apigw_adaptor::HttpPortRequest;
+use http_port_tools::http_payload_decoder;
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;
-use models::models::user::MutableUser;
-use query_map::QueryMap;
+use models::models::user::{MutableUser, UserRepositoryPort};
 use serde_json::json;
 
 lazy_static! {
@@ -34,39 +36,14 @@ lazy_static! {
     };
 }
 
-pub async fn user_update_put_http_port(
-    _path_params: &QueryMap,
-    _query_params: &QueryMap,
-    payload: &Option<String>,
+pub async fn user_update_put_http_port<T1: UserRepositoryPort, T2: EventingPort>(
+    user_repository_port: &T1,
+    eventing_port: &T2,
+    http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    match payload {
-        None => {
-            let resp = Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .header("content-type", "application/json")
-                .body("".to_string());
-            return Ok(resp.unwrap());
-        }
-        Some(_) => {}
-    }
-    let payload_str = payload.clone().unwrap();
-    let payload_json = serde_json::from_str::<serde_json::Value>(&payload_str).unwrap();
-    let result = USER_SCHEMA.validate(&payload_json);
-    match result {
-        Ok(_) => {}
-        Err(e) => {
-            e.enumerate().for_each(|x| {
-                println!("Validation error: {}", x.1);
-            });
-            let resp = Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .header("content-type", "application/json")
-                .body("".to_string());
-            return Ok(resp.unwrap());
-        }
-    }
-    let user_updates = serde_json::from_str::<MutableUser>(&payload_str).unwrap();
-    match user_update_core(user_updates).await {
+    let payload = http_request.payload;
+    let user_updates = http_payload_decoder!(MutableUser, USER_SCHEMA, payload);
+    match user_update_core(user_repository_port, eventing_port, user_updates).await {
         Ok(user) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

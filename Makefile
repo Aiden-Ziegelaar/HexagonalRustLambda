@@ -1,6 +1,3 @@
-test:
-	cargo test
-
 fmt-rust:
 	cargo fmt
 
@@ -14,8 +11,13 @@ build-debug:
 build-production:
 	cargo lambda build --arm64 --release
 
-test:
+test: test-rust test-integration
+
+test-rust:
 	cargo test
+
+test-int:
+	cd test-integration && npm test
 
 init:
 	terraform -chdir=infra init

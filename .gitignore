@@ -17,4 +17,4 @@ target/
 infra/terraform.tfstate
 infra/terraform.tfstate.backup
 
-test/node_modules
+*/node_modules
