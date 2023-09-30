@@ -1,17 +1,19 @@
 use std::collections::HashMap;
 
+use async_trait::async_trait;
 use aws_sdk_dynamodb::types::error::{
     ConditionalCheckFailedException, TransactionCanceledException,
 };
 use aws_sdk_dynamodb::types::AttributeValue;
 use error::HexagonalError;
+use mockall::automock;
 use persistance_repository::DynamoDBSingleTableRepository;
 use serde::{Deserialize, Serialize};
 
 use crate::default_time;
 
 // First we define our model
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct User {
     pub first: String,
     pub last: String,
@@ -105,8 +107,9 @@ impl MutableUser {
     }
 }
 
-// Conceptually the traitS of the repository are our "ports" and the implementations are our "adaptors"
-#[async_trait::async_trait]
+// Conceptually the traits of the repository are our "ports" and the implementations are our "adaptors"
+#[automock]
+#[async_trait]
 pub trait UserRepositoryPort {
     async fn user_get_by_email(&self, email: String) -> Result<Option<User>, HexagonalError>;
     async fn user_get_by_username(&self, username: String) -> Result<Vec<User>, HexagonalError>;
@@ -132,7 +135,7 @@ impl UserRepositoryAdaptor {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl UserRepositoryPort for UserRepositoryAdaptor {
     async fn user_get_by_email(&self, email: String) -> Result<Option<User>, HexagonalError> {
         let result = self

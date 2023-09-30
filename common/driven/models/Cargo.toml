@@ -14,3 +14,4 @@ tokio = { workspace = true }
 once_cell = { workspace = true }
 error = { workspace = true }
 async-trait = { workspace = true }
+mockall ={ workspace = true }

@@ -1,9 +1,11 @@
 pub mod events;
 
+use async_trait::async_trait;
 use aws_sdk_eventbridge::Client;
 
 use error::HexagonalError;
 use events::event_emmiter::SerialisableEvent;
+use mockall::automock;
 use sdk_credential_meta_repository::SdkCredentialsMetaRepository;
 
 pub struct EventingRepository {
@@ -11,9 +13,10 @@ pub struct EventingRepository {
     pub bus_name: String,
 }
 
-#[async_trait::async_trait]
+#[automock]
+#[async_trait]
 pub trait EventingPort {
-    async fn emit<T: SerialisableEvent + Sync>(&self, event: &T) -> Result<(), HexagonalError>;
+    async fn emit<T: SerialisableEvent + Sync + 'static>(&self, event: &T) -> Result<(), HexagonalError>;
 }
 
 impl EventingRepository {

@@ -42,6 +42,8 @@ pub async fn user_create_core<T1: UserRepositoryPort, T2: EventingPort>(
 
 #[cfg(test)]
 mod tests {
+    use models::default_time;
+
     use super::*;
 
     #[tokio::test]
@@ -54,5 +56,113 @@ mod tests {
         assert!(!email_regex.is_match("CAPItalsemail@email.com"));
         assert!(!email_regex.is_match("CAPItalsemail@email.com"));
         assert!(!email_regex.is_match("test@Email.com"));
+    }
+
+    #[tokio::test]
+    async fn test_user_create_core() {
+        // Arrange
+        let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
+        let mut eventing_port = eventing::MockEventingPort::new();
+
+        let user = User {
+            email: "testemail@email.com".to_string(),
+            first: "first".to_string(),
+            last: "last".to_string(),
+            username: "username".to_string(),
+            created_at: default_time(),
+            updated_at: default_time(),
+        };
+
+        let returned_user = user.clone();
+
+        eventing_port.expect_emit::<EventUserCreatedV1>().times(1).returning(move |_| Ok(()));
+        user_repository_port.expect_user_create().times(1).returning(move |_| Ok(returned_user.clone()));
+
+        // Act
+        let result = user_create_core(&user_repository_port, &eventing_port, user.clone()).await;
+
+        // Assert
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), user);
+    }
+
+    #[tokio::test]
+    async fn test_user_create_core_invalid_email() {
+        // Arrange
+        let user_repository_port = models::models::user::MockUserRepositoryPort::new();
+        let eventing_port = eventing::MockEventingPort::new();
+
+        let user = User {
+            email: "notanemail".to_string(),
+            first: "first".to_string(),
+            last: "last".to_string(),
+            username: "username".to_string(),
+            created_at: default_time(),
+            updated_at: default_time(),
+        };
+
+        // Act
+        let result = user_create_core(&user_repository_port, &eventing_port, user.clone()).await;
+
+        // Assert
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::BadInput);
+    }
+
+    #[tokio::test]
+    async fn test_user_create_error_from_dynamo() {
+        // Arrange
+        let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
+        let eventing_port = eventing::MockEventingPort::new();
+
+        let user = User {
+            email: "averygoodemail@email.com".to_string(),
+            first: "first".to_string(),
+            last: "last".to_string(),
+            username: "username".to_string(),
+            created_at: default_time(),
+            updated_at: default_time(),
+        };
+
+        user_repository_port.expect_user_create().times(1).returning(move |_| Err(error::HexagonalError {
+            error: error::HexagonalErrorCode::Conflict,
+            message: "Error in Dynamo".to_string(),
+            trace: "".to_string(),
+        }));
+
+        // Act
+        let result = user_create_core(&user_repository_port, &eventing_port, user.clone()).await;
+
+        // Assert
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::Conflict);
+    }
+
+    #[tokio::test]
+    async fn test_user_create_error_from_eventing() {
+        // Arrange
+        let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
+        let mut eventing_port = eventing::MockEventingPort::new();
+    
+        let user = User {
+            email: "averygoodemail@email.com".to_string(),
+            first: "first".to_string(),
+            last: "last".to_string(),
+            username: "username".to_string(),
+            created_at: default_time(),
+            updated_at: default_time(),
+        };
+
+        let returned_user = user.clone();
+
+        eventing_port.expect_emit::<EventUserCreatedV1>().times(1).returning(move |_| Err(error::HexagonalError { error: error::HexagonalErrorCode::AdaptorError, message: "".to_string(), trace: "".to_string() }));
+        user_repository_port.expect_user_create().times(1).returning(move |_| Ok(returned_user.clone()) );
+
+        // Act
+        let result = user_create_core(&user_repository_port, &eventing_port, user.clone()).await;
+
+        // Assert
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::AdaptorError);
     }
 }

@@ -16,6 +16,7 @@ serde_json = { workspace = true }
 sdk_credential_meta_repository = { workspace = true }
 tokio = { workspace = true }
 async-trait = { workspace = true }
+mockall = { workspace = true }
 # Monorepo
 models = { workspace = true }
 error = { workspace = true }

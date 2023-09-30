@@ -2,7 +2,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum HexagonalErrorCode {
     #[serde(rename = "NotFound")]
     NotFound,
@@ -16,7 +16,7 @@ pub enum HexagonalErrorCode {
     Unkown,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct HexagonalError {
     pub error: HexagonalErrorCode,
     pub message: String,
