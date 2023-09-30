@@ -51,8 +51,6 @@ pub async fn user_update_put_http_port<T1: UserRepositoryPort, T2: EventingPort>
                 .body(serde_json::to_string(&user).unwrap());
             Ok(resp.unwrap())
         }
-        Err(err) => {
-            Ok(err.compile_to_http_response())
-        }
+        Err(err) => Ok(err.compile_to_http_response()),
     }
 }

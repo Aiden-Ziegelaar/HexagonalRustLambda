@@ -7,7 +7,6 @@ pub async fn user_update_core<T1: UserRepositoryPort, T2: EventingPort>(
     eventing_port: &T2,
     who: MutableUser,
 ) -> Result<User, HexagonalError> {
-
     if who.first.is_none() && who.last.is_none() {
         return Err(HexagonalError {
             error: error::HexagonalErrorCode::BadInput,
@@ -19,7 +18,9 @@ pub async fn user_update_core<T1: UserRepositoryPort, T2: EventingPort>(
     let user = user_repository_port.user_update_by_email(who).await;
 
     if user.is_ok() {
-        let event_result = eventing_port.emit(&EventUserUpdatedV1::new(user.clone().unwrap())).await;
+        let event_result = eventing_port
+            .emit(&EventUserUpdatedV1::new(user.clone().unwrap()))
+            .await;
         if event_result.is_err() {
             return Err(event_result.unwrap_err());
         }
@@ -57,12 +58,19 @@ mod tests {
 
         let return_user = user.clone();
 
-        user_repository_port.expect_user_update_by_email().times(1).returning(move |_| Ok(return_user.clone()));
+        user_repository_port
+            .expect_user_update_by_email()
+            .times(1)
+            .returning(move |_| Ok(return_user.clone()));
 
-        eventing_port.expect_emit::<EventUserUpdatedV1>().times(1).returning(move |_| Ok(()));
+        eventing_port
+            .expect_emit::<EventUserUpdatedV1>()
+            .times(1)
+            .returning(move |_| Ok(()));
 
         // Act
-        let result = user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
+        let result =
+            user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
 
         // Assert
         assert!(result.is_ok());
@@ -91,11 +99,15 @@ mod tests {
         };
 
         // Act
-        let result = user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
+        let result =
+            user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
 
         // Assert
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::BadInput);
+        assert_eq!(
+            result.unwrap_err().error,
+            error::HexagonalErrorCode::BadInput
+        );
     }
 
     #[tokio::test]
@@ -119,18 +131,27 @@ mod tests {
             last: Some("last".to_string()),
         };
 
-        user_repository_port.expect_user_update_by_email().times(1).returning(move |_| Err(HexagonalError {
-            error: error::HexagonalErrorCode::AdaptorError,
-            message: "test".to_string(),
-            trace: "".to_string(),
-        }));
+        user_repository_port
+            .expect_user_update_by_email()
+            .times(1)
+            .returning(move |_| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
-        let result = user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
+        let result =
+            user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
 
         // Assert
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::AdaptorError);
+        assert_eq!(
+            result.unwrap_err().error,
+            error::HexagonalErrorCode::AdaptorError
+        );
     }
 
     #[tokio::test]
@@ -154,19 +175,31 @@ mod tests {
             last: Some("last".to_string()),
         };
 
-        user_repository_port.expect_user_update_by_email().times(1).returning(move |_| Ok(user.clone()));
+        user_repository_port
+            .expect_user_update_by_email()
+            .times(1)
+            .returning(move |_| Ok(user.clone()));
 
-        eventing_port.expect_emit::<EventUserUpdatedV1>().times(1).returning(move |_| Err(HexagonalError {
-            error: error::HexagonalErrorCode::AdaptorError,
-            message: "test".to_string(),
-            trace: "".to_string(),
-        }));
+        eventing_port
+            .expect_emit::<EventUserUpdatedV1>()
+            .times(1)
+            .returning(move |_| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
-        let result = user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
+        let result =
+            user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
 
         // Assert
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::AdaptorError);
+        assert_eq!(
+            result.unwrap_err().error,
+            error::HexagonalErrorCode::AdaptorError
+        );
     }
 }

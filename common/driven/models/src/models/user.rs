@@ -324,7 +324,6 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
         email: String,
         new_username: String,
     ) -> Result<(), HexagonalError> {
-
         let get_user = self.user_get_by_email(email.clone()).await;
         if get_user.is_err() {
             return Err(get_user.unwrap_err());
@@ -489,7 +488,8 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
             .delete(user_delete)
             .build();
 
-        self.persistance_repository.client
+        self.persistance_repository
+            .client
             .transact_write_items()
             .transact_items(user_delete_action)
             .transact_items(username_delete_action)
@@ -503,8 +503,6 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
                     trace: err_trace,
                 }
             })
-            .map(|_| (
-                user.unwrap()
-            ))
+            .map(|_| (user.unwrap()))
     }
 }

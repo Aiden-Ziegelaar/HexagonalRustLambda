@@ -8,10 +8,14 @@ pub async fn user_delete_core<T1: UserRepositoryPort, T2: EventingPort>(
     email: String,
 ) -> Result<User, HexagonalError> {
     let lowercase_email = email.to_lowercase();
-    let user = user_repository_port.user_delete_by_email(lowercase_email).await;
+    let user = user_repository_port
+        .user_delete_by_email(lowercase_email)
+        .await;
 
     if user.is_ok() {
-        let event_result = eventing_port.emit(&EventUserDeletedV1::new(user.clone().unwrap())).await;
+        let event_result = eventing_port
+            .emit(&EventUserDeletedV1::new(user.clone().unwrap()))
+            .await;
         if event_result.is_err() {
             return Err(event_result.unwrap_err());
         }
@@ -45,16 +49,22 @@ mod tests {
 
         let return_user = user.clone();
 
-        user_repository_port.expect_user_delete_by_email().times(1).returning(move |_| Ok(return_user.clone()));
+        user_repository_port
+            .expect_user_delete_by_email()
+            .times(1)
+            .returning(move |_| Ok(return_user.clone()));
 
-        eventing_port.expect_emit::<EventUserDeletedV1>().times(1).returning(move |_| Ok(()));
+        eventing_port
+            .expect_emit::<EventUserDeletedV1>()
+            .times(1)
+            .returning(move |_| Ok(()));
 
         // Act
         let result = user_delete_core(&user_repository_port, &eventing_port, email.clone()).await;
 
         // Assert
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), user);        
+        assert_eq!(result.unwrap(), user);
     }
 
     #[tokio::test]
@@ -65,18 +75,26 @@ mod tests {
 
         let email = "thisEmailIsNotValidated".to_string();
 
-        user_repository_port.expect_user_delete_by_email().times(1).returning(move |_| Err(HexagonalError {
-            error: error::HexagonalErrorCode::NotFound,
-            message: "User not found".to_string(),
-            trace: "".to_string(),
-        }));
+        user_repository_port
+            .expect_user_delete_by_email()
+            .times(1)
+            .returning(move |_| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::NotFound,
+                    message: "User not found".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
         let result = user_delete_core(&user_repository_port, &eventing_port, email.clone()).await;
 
         // Assert
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::NotFound);
+        assert_eq!(
+            result.unwrap_err().error,
+            error::HexagonalErrorCode::NotFound
+        );
     }
 
     #[tokio::test]
@@ -96,20 +114,30 @@ mod tests {
             updated_at: default_time(),
         };
 
-        user_repository_port.expect_user_delete_by_email().times(1).returning(move |_| Ok(user.clone()));
+        user_repository_port
+            .expect_user_delete_by_email()
+            .times(1)
+            .returning(move |_| Ok(user.clone()));
 
-        eventing_port.expect_emit::<EventUserDeletedV1>().times(1).returning(move |_| Err(HexagonalError {
-            error: error::HexagonalErrorCode::AdaptorError,
-            message: "Error in Eventing".to_string(),
-            trace: "".to_string(),
-        }));
+        eventing_port
+            .expect_emit::<EventUserDeletedV1>()
+            .times(1)
+            .returning(move |_| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "Error in Eventing".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
         let result = user_delete_core(&user_repository_port, &eventing_port, email.clone()).await;
 
         // Assert
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::AdaptorError);
+        assert_eq!(
+            result.unwrap_err().error,
+            error::HexagonalErrorCode::AdaptorError
+        );
     }
 }
-

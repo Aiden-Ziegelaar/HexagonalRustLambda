@@ -31,7 +31,9 @@ pub async fn user_create_core<T1: UserRepositoryPort, T2: EventingPort>(
     let user = user_repository_port.user_create(who).await;
 
     if user.is_ok() {
-        let event_result = eventing_port.emit(&EventUserCreatedV1::new(user.clone().unwrap())).await;
+        let event_result = eventing_port
+            .emit(&EventUserCreatedV1::new(user.clone().unwrap()))
+            .await;
         if event_result.is_err() {
             return Err(event_result.unwrap_err());
         }
@@ -75,8 +77,14 @@ mod tests {
 
         let returned_user = user.clone();
 
-        eventing_port.expect_emit::<EventUserCreatedV1>().times(1).returning(move |_| Ok(()));
-        user_repository_port.expect_user_create().times(1).returning(move |_| Ok(returned_user.clone()));
+        eventing_port
+            .expect_emit::<EventUserCreatedV1>()
+            .times(1)
+            .returning(move |_| Ok(()));
+        user_repository_port
+            .expect_user_create()
+            .times(1)
+            .returning(move |_| Ok(returned_user.clone()));
 
         // Act
         let result = user_create_core(&user_repository_port, &eventing_port, user.clone()).await;
@@ -106,7 +114,10 @@ mod tests {
 
         // Assert
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::BadInput);
+        assert_eq!(
+            result.unwrap_err().error,
+            error::HexagonalErrorCode::BadInput
+        );
     }
 
     #[tokio::test]
@@ -124,18 +135,26 @@ mod tests {
             updated_at: default_time(),
         };
 
-        user_repository_port.expect_user_create().times(1).returning(move |_| Err(error::HexagonalError {
-            error: error::HexagonalErrorCode::Conflict,
-            message: "Error in Dynamo".to_string(),
-            trace: "".to_string(),
-        }));
+        user_repository_port
+            .expect_user_create()
+            .times(1)
+            .returning(move |_| {
+                Err(error::HexagonalError {
+                    error: error::HexagonalErrorCode::Conflict,
+                    message: "Error in Dynamo".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
         let result = user_create_core(&user_repository_port, &eventing_port, user.clone()).await;
 
         // Assert
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::Conflict);
+        assert_eq!(
+            result.unwrap_err().error,
+            error::HexagonalErrorCode::Conflict
+        );
     }
 
     #[tokio::test]
@@ -143,7 +162,7 @@ mod tests {
         // Arrange
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
         let mut eventing_port = eventing::MockEventingPort::new();
-    
+
         let user = User {
             email: "averygoodemail@email.com".to_string(),
             first: "first".to_string(),
@@ -155,14 +174,29 @@ mod tests {
 
         let returned_user = user.clone();
 
-        eventing_port.expect_emit::<EventUserCreatedV1>().times(1).returning(move |_| Err(error::HexagonalError { error: error::HexagonalErrorCode::AdaptorError, message: "".to_string(), trace: "".to_string() }));
-        user_repository_port.expect_user_create().times(1).returning(move |_| Ok(returned_user.clone()) );
+        eventing_port
+            .expect_emit::<EventUserCreatedV1>()
+            .times(1)
+            .returning(move |_| {
+                Err(error::HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "".to_string(),
+                    trace: "".to_string(),
+                })
+            });
+        user_repository_port
+            .expect_user_create()
+            .times(1)
+            .returning(move |_| Ok(returned_user.clone()));
 
         // Act
         let result = user_create_core(&user_repository_port, &eventing_port, user.clone()).await;
 
         // Assert
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::AdaptorError);
+        assert_eq!(
+            result.unwrap_err().error,
+            error::HexagonalErrorCode::AdaptorError
+        );
     }
 }

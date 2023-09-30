@@ -8,7 +8,6 @@ pub async fn user_get_core<T1: UserRepositoryPort>(
     user_repository_port.user_get_by_email(email).await
 }
 
-
 #[cfg(test)]
 mod tests {
     use models::default_time;
@@ -33,7 +32,10 @@ mod tests {
 
         let return_user = user.clone();
 
-        user_repository_port.expect_user_get_by_email().times(1).returning(move |_| Ok(Some(return_user.clone())));
+        user_repository_port
+            .expect_user_get_by_email()
+            .times(1)
+            .returning(move |_| Ok(Some(return_user.clone())));
 
         // Act
         let result = user_get_core(&user_repository_port, email.clone()).await;
@@ -50,7 +52,10 @@ mod tests {
 
         let email = "thisEmailIsNotValidated".to_string();
 
-        user_repository_port.expect_user_get_by_email().times(1).returning(move |_| Ok(None));
+        user_repository_port
+            .expect_user_get_by_email()
+            .times(1)
+            .returning(move |_| Ok(None));
 
         // Act
         let result = user_get_core(&user_repository_port, email.clone()).await;
@@ -67,18 +72,25 @@ mod tests {
 
         let email = "thisEmailIsNotValidated".to_string();
 
-        user_repository_port.expect_user_get_by_email().times(1).returning(move |_| Err(HexagonalError {
-            error: error::HexagonalErrorCode::AdaptorError,
-            message: "test".to_string(),
-            trace: "".to_string(),
-        }));
+        user_repository_port
+            .expect_user_get_by_email()
+            .times(1)
+            .returning(move |_| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
         let result = user_get_core(&user_repository_port, email.clone()).await;
 
         // Assert
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().error, error::HexagonalErrorCode::AdaptorError);
+        assert_eq!(
+            result.unwrap_err().error,
+            error::HexagonalErrorCode::AdaptorError
+        );
     }
-
 }

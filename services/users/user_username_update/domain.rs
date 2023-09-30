@@ -13,10 +13,12 @@ pub async fn user_username_update_core<T1: UserRepositoryPort, T2: EventingPort>
         .await;
 
     if result.is_ok() {
-        let event_result = eventing_port.emit(&EventUsernameUpdatedV1::new(
-            email.clone(),
-            username.clone(),
-        )).await;
+        let event_result = eventing_port
+            .emit(&EventUsernameUpdatedV1::new(
+                email.clone(),
+                username.clone(),
+            ))
+            .await;
 
         if event_result.is_err() {
             return Err(event_result.unwrap_err());
@@ -25,7 +27,6 @@ pub async fn user_username_update_core<T1: UserRepositoryPort, T2: EventingPort>
 
     result
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -75,11 +76,13 @@ mod tests {
         user_repository_port
             .expect_user_update_username_by_email()
             .times(1)
-            .returning(move |_, _| Err(HexagonalError {
-                error: error::HexagonalErrorCode::NotFound,
-                message: "test".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(move |_, _| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::NotFound,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
         let result = user_username_update_core(
@@ -111,11 +114,13 @@ mod tests {
         eventing_port
             .expect_emit::<EventUsernameUpdatedV1>()
             .times(1)
-            .returning(move |_| Err(HexagonalError {
-                error: error::HexagonalErrorCode::NotFound,
-                message: "test".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(move |_| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::NotFound,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
         let result = user_username_update_core(

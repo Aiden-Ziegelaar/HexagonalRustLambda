@@ -16,7 +16,10 @@ pub struct EventingRepository {
 #[automock]
 #[async_trait]
 pub trait EventingPort {
-    async fn emit<T: SerialisableEvent + Sync + 'static>(&self, event: &T) -> Result<(), HexagonalError>;
+    async fn emit<T: SerialisableEvent + Sync + 'static>(
+        &self,
+        event: &T,
+    ) -> Result<(), HexagonalError>;
 }
 
 impl EventingRepository {
