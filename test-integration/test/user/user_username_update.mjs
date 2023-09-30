@@ -3,7 +3,7 @@ import { assert, expect } from 'chai';
 import { faker } from '@faker-js/faker';
 
 describe('Update User', function () {
-    it('should update a user ', async function () {
+    it('should update a username', async function () {
         //arrange
         let user = {
             first: faker.person.firstName(),
@@ -12,79 +12,32 @@ describe('Update User', function () {
             username: faker.internet.userName(),
         }
 
-        let user_patch = {
-            last: faker.person.lastName(),
+        let username_patch = {
             email: user.email,
+            username: faker.internet.userName(),
         }
 
         let patched_user = {
-            first: user.first,
-            last: user_patch.last,
-            email: user_patch.email,
-            username: user.username,
+            ...user,
+            username: username_patch.username,
         }
 
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user`, 
-            user_patch
+        await axios.put(`${process.env.INF_API_ENDPOINT}main/user/username`, 
+            username_patch,
+            {
+                validateStatus: () => true,
+            }
+        )
+
+        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user`,
+            { params: { email: user.email } }
         )
 
         //assert
-        assert.equal(res.status, 200)
         expect(res.data).to.include(patched_user)
-    })
-
-    it('should fail to update a user with no fields', async function () {
-        //arrange
-        let user = {
-            first: faker.person.firstName(),
-            last: faker.person.lastName(),
-            email: faker.internet.email().toLowerCase(),
-            username: faker.internet.userName(),
-        }
-
-        let user_patch = {
-            email: user.email,
-        }
-
-        //act
-        await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
-
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user`, 
-            user_patch,
-            { validateStatus: () => true }
-        )
-
-        //assert
-        assert.equal(res.status, 400)
-    })
-
-    it('should fail to update a username', async function () {
-        //arrange
-        let user = {
-            first: faker.person.firstName(),
-            last: faker.person.lastName(),
-            email: faker.internet.email().toLowerCase(),
-            username: faker.internet.userName(),
-        }
-
-        let user_patch = {
-            last: faker.person.lastName(),
-            email: user.email,
-            userName: faker.internet.userName(),
-        }
-
-        //act
-        await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
-
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user`, 
-            user_patch,
-            { validateStatus: () => true }
-        )
-
-        //assert
-        assert.equal(res.status, 400)
+        assert.equal(res.status, 200)
     })
 });

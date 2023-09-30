@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use aws_sdk_dynamodb::types::error::{
-    ConditionalCheckFailedException, TransactionCanceledException,
-};
+use aws_sdk_dynamodb::types::error::TransactionCanceledException;
 use aws_sdk_dynamodb::types::AttributeValue;
 use error::HexagonalError;
 use mockall::automock;
@@ -326,6 +324,23 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
         email: String,
         new_username: String,
     ) -> Result<(), HexagonalError> {
+
+        let get_user = self.user_get_by_email(email.clone()).await;
+        if get_user.is_err() {
+            return Err(get_user.unwrap_err());
+        }
+        let user = get_user.unwrap();
+
+        if user.is_none() {
+            return Err(HexagonalError {
+                error: error::HexagonalErrorCode::NotFound,
+                message: "Unable to delete user, does not exist".to_string(),
+                trace: "".to_string(),
+            });
+        }
+
+        let old_username = user.clone().unwrap().username.clone();
+
         let mut username_item = HashMap::new();
         username_item.insert(
             "Pkey".to_string(),
@@ -368,7 +383,7 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
             .table_name(self.persistance_repository.table_name.clone())
             .key(
                 "Pkey",
-                AttributeValue::S("user_username_".to_string() + &new_username.clone()),
+                AttributeValue::S("user_username_".to_string() + &old_username),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();
@@ -385,26 +400,50 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
             .send()
             .await
             .map_err(|err| {
-                let err_trace = err.to_string();
-                if err
-                    .into_source()
-                    .unwrap()
-                    .downcast_ref::<ConditionalCheckFailedException>()
-                    .is_some()
-                {
-                    HexagonalError {
-                        error: error::HexagonalErrorCode::Conflict,
-                        message: "Unable to change username, username is already taken".to_string(),
-                        trace: err_trace,
-                    }
-                } else {
-                    HexagonalError {
-                        error: error::HexagonalErrorCode::AdaptorError,
-                        message: "Unable to update username, error in transaction write call"
-                            .to_string(),
-                        trace: err_trace,
+                let err = err.into_source();
+                let default_err = HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "Unable to create user, error in transaction write call".to_string(),
+                    trace: "".to_string(),
+                };
+
+                if err.is_err() {
+                    return default_err;
+                }
+
+                println!("{:?}", err);
+
+                let err_unwrap1 = err.unwrap();
+                let err_unwrap2 = err_unwrap1.source();
+
+                if err_unwrap2.is_none() {
+                    return default_err;
+                }
+
+                let err_unwrap3 = err_unwrap2.unwrap();
+
+                let err_transaction_failure =
+                    err_unwrap3.downcast_ref::<TransactionCanceledException>();
+                if err_transaction_failure.is_some() {
+                    let err_reasons = err_transaction_failure
+                        .unwrap()
+                        .cancellation_reasons
+                        .clone()
+                        .unwrap();
+                    for reason in err_reasons {
+                        if reason.code.unwrap_or_default() == *"ConditionalCheckFailed" {
+                            return HexagonalError {
+                                error: error::HexagonalErrorCode::Conflict,
+                                message:
+                                    "Unable to create user, user email or username already exists"
+                                        .to_string(),
+                                trace: err_unwrap1.to_string(),
+                            };
+                        }
                     }
                 }
+
+                default_err
             })
             .map(|_| ())
     }
