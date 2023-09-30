@@ -325,8 +325,8 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
         new_username: String,
     ) -> Result<(), HexagonalError> {
         let get_user = self.user_get_by_email(email.clone()).await;
-        if get_user.is_err() {
-            return Err(get_user.unwrap_err());
+        if let Err(err) = get_user {
+            return Err(err);
         }
         let user = get_user.unwrap();
 
@@ -449,8 +449,8 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
 
     async fn user_delete_by_email(&self, email: String) -> Result<User, HexagonalError> {
         let get_user = self.user_get_by_email(email.clone()).await;
-        if get_user.is_err() {
-            return Err(get_user.unwrap_err());
+        if let Err(err) = get_user {
+            return Err(err);
         }
         let user = get_user.unwrap();
 
