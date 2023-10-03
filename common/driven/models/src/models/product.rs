@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use async_trait::async_trait;
 use error::HexagonalError;
 use mockall::automock;
@@ -67,17 +69,23 @@ impl DynamoDbModel for Product {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct MutableProduct {
-    pub name: String,
-    pub price_cents: i32,
-    pub description: String,
+    pub name: Option<String>,
+    pub price_cents: Option<i32>,
+    pub description: Option<String>,
 }
 
 impl MutableProduct {
     pub fn into_attr_map(&self) -> std::collections::HashMap<String, AttributeValue> {
         let mut attr_map = std::collections::HashMap::new();
-        attr_map.insert("name".to_string(), AttributeValue::S(self.name.to_string()));
-        attr_map.insert("price_cents".to_string(), AttributeValue::N(self.price_cents.to_string()));
-        attr_map.insert("description".to_string(), AttributeValue::S(self.description.to_string()));
+        if self.name.is_some() {
+            attr_map.insert("name".to_string(), AttributeValue::S(self.name.clone().unwrap()));
+        }
+        if self.price_cents.is_some() {
+            attr_map.insert("price_cents".to_string(), AttributeValue::N(self.price_cents.unwrap().to_string()));
+        }
+        if self.description.is_some() {
+            attr_map.insert("description".to_string(), AttributeValue::S(self.description.clone().unwrap().to_string()));
+        }
         attr_map.insert("updated_at".to_string(), AttributeValue::N(default_time()));
         attr_map
     }
@@ -101,6 +109,93 @@ impl<'a> ProductRepositoryAdaptor<'a> {
     pub fn new(persistance_repository: &'a DynamoDBSingleTableRepository) -> ProductRepositoryAdaptor<'a> {
         ProductRepositoryAdaptor {
             persistance_repository,
+        }
+    }
+}
+
+#[async_trait]
+impl<'a> ProductRepositoryPort for ProductRepositoryAdaptor<'a> {
+    async fn product_get_by_id(&self, id: &String) -> Result<Option<Product>, HexagonalError> {
+        let result = self.persistance_repository.get_item_primary("product_".to_string() + id, "-".to_string()).await;
+
+        match result {
+            Ok(result) => {
+                match result.item {
+                    Some(item) => Ok(Some(Product::from_attr_map(item))),
+                    None => Ok(None),
+                }
+            },
+            Err(e) => Err(HexagonalError {
+                error: error::HexagonalErrorCode::AdaptorError,
+                message: "Unable to get product".to_string(),
+                trace: e.to_string(),
+            }),
+        }
+    }
+
+    async fn product_create(&self, product: &Product) -> Result<Product, HexagonalError> {
+        let result = self.persistance_repository.put_new_item(product.into_attr_map()).await;
+
+        match result {
+            Ok(output) => Ok(Product::from_attr_map(output.attributes.unwrap())),
+            Err(e) => Err(HexagonalError {
+                error: error::HexagonalErrorCode::AdaptorError,
+                message: "Unable to create product".to_string(),
+                trace: e.to_string(),
+            }),
+        }
+    }
+
+    async fn product_update_by_id(&self, id: &String, product_update: &MutableProduct) -> Result<Product, HexagonalError> {
+
+        let mut update_expression = "SET ".to_string();
+        let mut attr_names = HashMap::new();
+
+        if product_update.name.is_some() {
+            update_expression.push_str("#name_key = :name, ");
+            attr_names.insert("#name_key".to_string(), "name".to_string());
+        }
+
+        if product_update.price_cents.is_some() {
+            update_expression.push_str("#price_cents_key = :price_cents, ");
+            attr_names.insert("#price_cents".to_string(), "price_cents".to_string());
+        }
+
+        if product_update.description.is_some() {
+            update_expression.push_str("#description_key = :description, ");
+            attr_names.insert("#description".to_string(), "description".to_string());
+        }
+
+        update_expression.push_str("updated_at = :updated_at");
+
+        let result = self.persistance_repository.update_item(
+            "product_".to_string() + id, 
+            "-".to_string(),
+            update_expression,
+            Some(attr_names),
+            Some(product_update.into_attr_map())
+        ).await;
+
+        match result {
+            Ok(output) => Ok(Product::from_attr_map(output.attributes.unwrap())),
+            Err(e) => Err(HexagonalError {
+                error: error::HexagonalErrorCode::AdaptorError,
+                message: "Unable to update product".to_string(),
+                trace: e.to_string(),
+            }),
+        }
+    }
+
+    async fn product_delete_by_id(&self, id: &String) -> Result<Product, HexagonalError> {
+        let result = self.persistance_repository.delete_item("product_".to_string() + id, "-".to_string()).await;
+
+        match result {
+            Ok(output) => Ok(Product::from_attr_map(output.attributes.unwrap())),
+            Err(e) => Err(HexagonalError {
+                error: error::HexagonalErrorCode::AdaptorError,
+                message: "Unable to delete product".to_string(),
+                trace: e.to_string(),
+            }),
         }
     }
 }
