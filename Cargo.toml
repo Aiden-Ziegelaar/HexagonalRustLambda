@@ -27,6 +27,7 @@ jsonschema = { version = "0.17.1" }
 serde_json = { version = "1.0.105" }
 once_cell = { version = "1.4.0" }
 regex = { version = "1.9.5" }
+uuid = {version = "1.4.1", features = ["serde", "v4"] }
 
 # AWS SDK Dependencies
 aws-config = { version = "0.56.1" }

@@ -33,7 +33,7 @@ async fn main() -> Result<(), Error> {
     let dynamo_db_repository = persistance_repository::DynamoDBSingleTableRepository::new(
         &sdk_credential_meta_repository,
     );
-    let user_repository = models::models::user::UserRepositoryAdaptor::new(dynamo_db_repository);
+    let user_repository = models::models::user::UserRepositoryAdaptor::new(&dynamo_db_repository);
 
     run(service_fn(|event| {
         http_lambda_driving_adaptor(&user_repository, event)

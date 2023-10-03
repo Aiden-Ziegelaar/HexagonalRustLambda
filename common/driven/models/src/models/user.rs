@@ -8,7 +8,7 @@ use mockall::automock;
 use persistance_repository::DynamoDBSingleTableRepository;
 use serde::{Deserialize, Serialize};
 
-use crate::default_time;
+use crate::{default_time, DynamoDbModel};
 
 // First we define our model
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -31,8 +31,8 @@ pub struct MutableUser {
 }
 
 // Adaptor Transform Traits
-impl User {
-    pub fn into_attr_map(&self) -> HashMap<String, AttributeValue> {
+impl DynamoDbModel for User {
+    fn into_attr_map(&self) -> HashMap<String, AttributeValue> {
         let mut item = HashMap::new();
         item.insert(
             "Pkey".to_string(),
@@ -53,26 +53,28 @@ impl User {
         );
         item.insert(
             "created_at".to_string(),
-            AttributeValue::S(self.created_at.clone()),
+            AttributeValue::N(self.created_at.clone()),
         );
         item.insert(
             "updated_at".to_string(),
-            AttributeValue::S(self.updated_at.clone()),
+            AttributeValue::N(self.updated_at.clone()),
         );
         item
     }
 
-    pub fn from_attr_map(attr: HashMap<String, AttributeValue>) -> User {
+    fn from_attr_map(attr: HashMap<String, AttributeValue>) -> User {
         User {
             first: attr.get("first").unwrap().as_s().unwrap().to_string(),
             last: attr.get("last").unwrap().as_s().unwrap().to_string(),
             email: attr.get("email").unwrap().as_s().unwrap().to_string(),
             username: attr.get("username").unwrap().as_s().unwrap().to_string(),
-            created_at: attr.get("created_at").unwrap().as_s().unwrap().to_string(),
-            updated_at: attr.get("updated_at").unwrap().as_s().unwrap().to_string(),
+            created_at: attr.get("created_at").unwrap().as_n().unwrap().to_string(),
+            updated_at: attr.get("updated_at").unwrap().as_n().unwrap().to_string(),
         }
     }
+}
 
+impl User {
     pub fn into_attr_map_unique_username(&self) -> HashMap<String, AttributeValue> {
         let mut item = HashMap::new();
         item.insert(
@@ -86,7 +88,7 @@ impl User {
 }
 
 impl MutableUser {
-    pub fn into_attr_map(&self) -> HashMap<String, AttributeValue> {
+    fn into_attr_map(&self) -> HashMap<String, AttributeValue> {
         let mut attribute_values = HashMap::new();
         if Option::is_some(&self.first) {
             attribute_values.insert(
@@ -100,7 +102,7 @@ impl MutableUser {
                 AttributeValue::S(self.last.clone().unwrap()),
             );
         }
-        attribute_values.insert(":updated_at".to_string(), AttributeValue::S(default_time()));
+        attribute_values.insert(":updated_at".to_string(), AttributeValue::N(default_time()));
         attribute_values
     }
 }
@@ -121,12 +123,12 @@ pub trait UserRepositoryPort {
     async fn user_delete_by_email(&self, email: &String) -> Result<User, HexagonalError>;
 }
 
-pub struct UserRepositoryAdaptor {
-    persistance_repository: DynamoDBSingleTableRepository,
+pub struct UserRepositoryAdaptor<'a> {
+    persistance_repository: &'a DynamoDBSingleTableRepository,
 }
 
-impl UserRepositoryAdaptor {
-    pub fn new(persistance_repository: DynamoDBSingleTableRepository) -> UserRepositoryAdaptor {
+impl<'a> UserRepositoryAdaptor<'a> {
+    pub fn new(persistance_repository: &DynamoDBSingleTableRepository) -> UserRepositoryAdaptor {
         UserRepositoryAdaptor {
             persistance_repository,
         }
@@ -134,7 +136,7 @@ impl UserRepositoryAdaptor {
 }
 
 #[async_trait]
-impl UserRepositoryPort for UserRepositoryAdaptor {
+impl <'a>UserRepositoryPort for UserRepositoryAdaptor<'a> {
     async fn user_get_by_email(&self, email: &String) -> Result<Option<User>, HexagonalError> {
         let result = self
             .persistance_repository
@@ -364,7 +366,7 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
             ":username".to_string(),
             AttributeValue::S(new_username.clone()),
         );
-        attribute_values.insert(":updated_at".to_string(), AttributeValue::S(default_time()));
+        attribute_values.insert(":updated_at".to_string(), AttributeValue::N(default_time()));
         let username_update = aws_sdk_dynamodb::types::Update::builder()
             .table_name(self.persistance_repository.table_name.clone())
             .update_expression(update_user_expression.to_string())
