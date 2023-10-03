@@ -4,7 +4,7 @@ pub trait EventEmmiter {
 }
 
 pub trait SerialisableEvent {
-    fn get_event_type(&self) -> String;
+    fn get_event_type(&self) -> &String;
     fn get_version(&self) -> u32;
     fn serialise(&self) -> String;
 }

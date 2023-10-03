@@ -28,7 +28,7 @@ pub async fn user_create_core<T1: UserRepositoryPort, T2: EventingPort>(
         });
     }
 
-    let user = user_repository_port.user_create(who).await;
+    let user = user_repository_port.user_create(&who).await;
 
     if user.is_ok() {
         let event_result = eventing_port

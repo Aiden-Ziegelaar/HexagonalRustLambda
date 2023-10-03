@@ -26,12 +26,12 @@ pub struct DynamoDBSingleTableRepository {
 
 impl DynamoDBSingleTableRepository {
     pub fn new(
-        sdk_credential_meta_repository: SdkCredentialsMetaRepository,
+        sdk_credential_meta_repository: &SdkCredentialsMetaRepository,
     ) -> DynamoDBSingleTableRepository {
         let table_name = std::env::var("DYNAMO_TABLE_NAME")
             .expect("DYNAMO_TABLE_NAME environment variable not set");
         DynamoDBSingleTableRepository {
-            client: Client::new(&sdk_credential_meta_repository.sdk_config.clone()),
+            client: Client::new(&sdk_credential_meta_repository.sdk_config),
             table_name,
         }
     }

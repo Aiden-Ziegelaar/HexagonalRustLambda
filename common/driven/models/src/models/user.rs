@@ -88,13 +88,13 @@ impl User {
 impl MutableUser {
     pub fn into_attr_map(&self) -> HashMap<String, AttributeValue> {
         let mut attribute_values = HashMap::new();
-        if Option::is_some(&self.first.clone()) {
+        if Option::is_some(&self.first) {
             attribute_values.insert(
                 ":first".to_string(),
                 AttributeValue::S(self.first.clone().unwrap()),
             );
         }
-        if Option::is_some(&self.last.clone()) {
+        if Option::is_some(&self.last) {
             attribute_values.insert(
                 ":last".to_string(),
                 AttributeValue::S(self.last.clone().unwrap()),
@@ -109,16 +109,16 @@ impl MutableUser {
 #[automock]
 #[async_trait]
 pub trait UserRepositoryPort {
-    async fn user_get_by_email(&self, email: String) -> Result<Option<User>, HexagonalError>;
-    async fn user_get_by_username(&self, username: String) -> Result<Vec<User>, HexagonalError>;
-    async fn user_create(&self, user: User) -> Result<User, HexagonalError>;
+    async fn user_get_by_email(&self, email: &String) -> Result<Option<User>, HexagonalError>;
+    async fn user_get_by_username(&self, username: &String) -> Result<Vec<User>, HexagonalError>;
+    async fn user_create(&self, user: &User) -> Result<User, HexagonalError>;
     async fn user_update_by_email(&self, user: MutableUser) -> Result<User, HexagonalError>;
     async fn user_update_username_by_email(
         &self,
-        email: String,
-        new_username: String,
+        email: &String,
+        new_username: &String,
     ) -> Result<(), HexagonalError>;
-    async fn user_delete_by_email(&self, email: String) -> Result<User, HexagonalError>;
+    async fn user_delete_by_email(&self, email: &String) -> Result<User, HexagonalError>;
 }
 
 pub struct UserRepositoryAdaptor {
@@ -135,7 +135,7 @@ impl UserRepositoryAdaptor {
 
 #[async_trait]
 impl UserRepositoryPort for UserRepositoryAdaptor {
-    async fn user_get_by_email(&self, email: String) -> Result<Option<User>, HexagonalError> {
+    async fn user_get_by_email(&self, email: &String) -> Result<Option<User>, HexagonalError> {
         let result = self
             .persistance_repository
             .get_item_primary(format!("user_{}", email.to_string()), "-".to_string())
@@ -154,7 +154,7 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
         }
     }
 
-    async fn user_get_by_username(&self, username: String) -> Result<Vec<User>, HexagonalError> {
+    async fn user_get_by_username(&self, username: &String) -> Result<Vec<User>, HexagonalError> {
         let result = self
             .persistance_repository
             .get_item_index(
@@ -187,7 +187,7 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
         }
     }
 
-    async fn user_create(&self, user: User) -> Result<User, HexagonalError> {
+    async fn user_create(&self, user: &User) -> Result<User, HexagonalError> {
         let user_model: HashMap<String, AttributeValue> = user.into_attr_map();
         let username_model: HashMap<String, AttributeValue> = user.into_attr_map_unique_username();
 
@@ -264,7 +264,7 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
 
                 default_err
             })
-            .map(|_| user)
+            .map(|_| user.clone())
     }
 
     async fn user_update_by_email(&self, user: MutableUser) -> Result<User, HexagonalError> {
@@ -321,10 +321,11 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
 
     async fn user_update_username_by_email(
         &self,
-        email: String,
-        new_username: String,
+        
+        email: &String,
+        new_username: &String,
     ) -> Result<(), HexagonalError> {
-        let get_user = self.user_get_by_email(email.clone()).await;
+        let get_user = self.user_get_by_email(email).await;
         if let Err(err) = get_user {
             return Err(err);
         }
@@ -338,12 +339,12 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
             });
         }
 
-        let old_username = user.clone().unwrap().username.clone();
+        let old_username = user.unwrap().username;
 
         let mut username_item = HashMap::new();
         username_item.insert(
             "Pkey".to_string(),
-            AttributeValue::S("user_username_".to_string() + &new_username.clone()),
+            AttributeValue::S("user_username_".to_string() + new_username),
         );
         username_item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
         username_item.insert("email".to_string(), AttributeValue::S(email.clone()));
@@ -369,7 +370,7 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
             .update_expression(update_user_expression.to_string())
             .key(
                 "Pkey",
-                AttributeValue::S("user_".to_string() + &email.clone()),
+                AttributeValue::S("user_".to_string() + &email),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .set_expression_attribute_values(Some(attribute_values))
@@ -447,8 +448,8 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
             .map(|_| ())
     }
 
-    async fn user_delete_by_email(&self, email: String) -> Result<User, HexagonalError> {
-        let get_user = self.user_get_by_email(email.clone()).await;
+    async fn user_delete_by_email(&self, email: &String) -> Result<User, HexagonalError> {
+        let get_user = self.user_get_by_email(&email).await;
         if let Err(err) = get_user {
             return Err(err);
         }
@@ -462,11 +463,13 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
             });
         }
 
+        let unwrapped_user = user.unwrap();
+
         let username_delete = aws_sdk_dynamodb::types::Delete::builder()
             .table_name(self.persistance_repository.table_name.clone())
             .key(
                 "Pkey",
-                AttributeValue::S("user_username_".to_string() + &user.clone().unwrap().username),
+                AttributeValue::S("user_username_".to_string() + &unwrapped_user.username),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();
@@ -475,7 +478,7 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
             .table_name(self.persistance_repository.table_name.clone())
             .key(
                 "Pkey",
-                AttributeValue::S("user_".to_string() + &email.clone()),
+                AttributeValue::S("user_".to_string() + email),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();
@@ -503,6 +506,6 @@ impl UserRepositoryPort for UserRepositoryAdaptor {
                     trace: err_trace,
                 }
             })
-            .map(|_| (user.unwrap()))
+            .map(|_| (unwrapped_user))
     }
 }

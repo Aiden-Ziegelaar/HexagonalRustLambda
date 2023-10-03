@@ -22,7 +22,7 @@ pub async fn user_delete_delete_http_port<T1: UserRepositoryPort, T2: EventingPo
             return Ok(err.compile_to_http_response());
         }
     };
-    match user_delete_core(user_repository_port, eventing_port, email.to_string()).await {
+    match user_delete_core(user_repository_port, eventing_port, &email.to_string()).await {
         Ok(user) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

@@ -5,11 +5,11 @@ use models::models::user::{User, UserRepositoryPort};
 pub async fn user_delete_core<T1: UserRepositoryPort, T2: EventingPort>(
     user_repository_port: &T1,
     eventing_port: &T2,
-    email: String,
+    email: &String,
 ) -> Result<User, HexagonalError> {
     let lowercase_email = email.to_lowercase();
     let user = user_repository_port
-        .user_delete_by_email(lowercase_email)
+        .user_delete_by_email(&lowercase_email)
         .await;
 
     if user.is_ok() {
@@ -60,7 +60,7 @@ mod tests {
             .returning(move |_| Ok(()));
 
         // Act
-        let result = user_delete_core(&user_repository_port, &eventing_port, email.clone()).await;
+        let result = user_delete_core(&user_repository_port, &eventing_port, &email).await;
 
         // Assert
         assert!(result.is_ok());
@@ -87,7 +87,7 @@ mod tests {
             });
 
         // Act
-        let result = user_delete_core(&user_repository_port, &eventing_port, email.clone()).await;
+        let result = user_delete_core(&user_repository_port, &eventing_port, &email).await;
 
         // Assert
         assert!(result.is_err());
@@ -131,7 +131,7 @@ mod tests {
             });
 
         // Act
-        let result = user_delete_core(&user_repository_port, &eventing_port, email.clone()).await;
+        let result = user_delete_core(&user_repository_port, &eventing_port, &email).await;
 
         // Assert
         assert!(result.is_err());

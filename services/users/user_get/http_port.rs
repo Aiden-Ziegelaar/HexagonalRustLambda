@@ -26,7 +26,7 @@ pub async fn user_get_get_http_port<T1: UserRepositoryPort>(
             return Ok(resp.unwrap());
         }
     };
-    match user_get_core(user_repository_port, email.to_string()).await {
+    match user_get_core(user_repository_port, &email.to_string()).await {
         Ok(user) => match user {
             Some(result) => {
                 let resp = Response::builder()

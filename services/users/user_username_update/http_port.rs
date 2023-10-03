@@ -51,8 +51,8 @@ pub async fn user_username_update_put_http_port<T1: UserRepositoryPort, T2: Even
     match user_username_update_core(
         user_repository_port,
         eventing_port,
-        user_updates.email,
-        user_updates.username,
+        &user_updates.email,
+        &user_updates.username,
     )
     .await
     {

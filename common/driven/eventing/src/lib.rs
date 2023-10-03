@@ -23,9 +23,9 @@ pub trait EventingPort {
 }
 
 impl EventingRepository {
-    pub fn new(sdk_credential_meta_repository: SdkCredentialsMetaRepository) -> EventingRepository {
+    pub fn new(sdk_credential_meta_repository: &SdkCredentialsMetaRepository) -> EventingRepository {
         EventingRepository {
-            client: Client::new(&sdk_credential_meta_repository.sdk_config.clone()),
+            client: Client::new(&sdk_credential_meta_repository.sdk_config),
             bus_name: std::env::var("EVENT_BUS_NAME")
                 .expect("EVENT_BUS_NAME environment variable not set"),
         }
@@ -37,7 +37,7 @@ impl EventingPort for EventingRepository {
     async fn emit<T: SerialisableEvent + Sync>(&self, event: &T) -> Result<(), HexagonalError> {
         let put_events_request = aws_sdk_eventbridge::types::PutEventsRequestEntry::builder()
             .set_event_bus_name(Some(self.bus_name.clone()))
-            .set_detail_type(Some(event.get_event_type()))
+            .set_detail_type(Some(event.get_event_type().clone()))
             .set_detail(Some(event.serialise()))
             .build();
 

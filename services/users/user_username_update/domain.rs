@@ -5,11 +5,11 @@ use models::models::user::UserRepositoryPort;
 pub async fn user_username_update_core<T1: UserRepositoryPort, T2: EventingPort>(
     user_repository_port: &T1,
     eventing_port: &T2,
-    email: String,
-    username: String,
+    email: &String,
+    username: &String,
 ) -> Result<(), HexagonalError> {
     let result = user_repository_port
-        .user_update_username_by_email(email.clone(), username.clone())
+        .user_update_username_by_email(email, username)
         .await;
 
     if result.is_ok() {
@@ -55,8 +55,8 @@ mod tests {
         let result = user_username_update_core(
             &user_repository_port,
             &eventing_port,
-            email.clone(),
-            username.clone(),
+            &email,
+            &username,
         )
         .await;
 
@@ -88,8 +88,8 @@ mod tests {
         let result = user_username_update_core(
             &user_repository_port,
             &eventing_port,
-            email.clone(),
-            username.clone(),
+            &email,
+            &username,
         )
         .await;
 
@@ -126,8 +126,8 @@ mod tests {
         let result = user_username_update_core(
             &user_repository_port,
             &eventing_port,
-            email.clone(),
-            username.clone(),
+            &email,
+            &username,
         )
         .await;
 

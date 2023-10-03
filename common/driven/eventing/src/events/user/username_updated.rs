@@ -24,8 +24,8 @@ impl EventUsernameUpdatedV1 {
 }
 
 impl SerialisableEvent for EventUsernameUpdatedV1 {
-    fn get_event_type(&self) -> String {
-        self.event_type.clone()
+    fn get_event_type(&self) -> &String {
+        &self.event_type
     }
 
     fn get_version(&self) -> u32 {
