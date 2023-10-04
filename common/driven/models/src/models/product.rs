@@ -16,7 +16,7 @@ use crate::{default_time, DynamoDbModel, new_uuid};
 pub struct Product {
     #[serde(default = "new_uuid")]
     pub id: String,
-    pub name: String,
+    pub product_name: String,
     pub price_cents: i32,
     pub description: String,
     #[serde(default = "default_time")]
@@ -26,10 +26,10 @@ pub struct Product {
 }
 
 impl Product {
-    pub fn new(name: String, price_cents: i32, description: String) -> Self {
+    pub fn new(product_name: String, price_cents: i32, description: String) -> Self {
         Self {
             id: new_uuid(),
-            name,
+            product_name,
             price_cents,
             description,
             created_at: default_time(),
@@ -42,7 +42,7 @@ impl DynamoDbModel for Product {
     fn from_attr_map(attr_map: std::collections::HashMap<String, AttributeValue>) -> Self {
         Product { 
             id: attr_map.get("id").unwrap().as_s().unwrap().to_string(),
-            name: attr_map.get("name").unwrap().as_s().unwrap().to_string(),
+            product_name: attr_map.get("product_name").unwrap().as_s().unwrap().to_string(),
             price_cents: attr_map.get("price_cents").unwrap().as_n().unwrap().parse::<i32>().unwrap(),
             description: attr_map.get("description").unwrap().as_s().unwrap().to_string(),
             created_at: attr_map.get("created_at").unwrap().as_n().unwrap().to_string(),
@@ -54,11 +54,11 @@ impl DynamoDbModel for Product {
         let mut attr_map = std::collections::HashMap::new();
         attr_map.insert(
             "Pkey".to_string(),
-            AttributeValue::S("user_".to_string() + &self.id.to_string()),
+            AttributeValue::S("PRODUCT#".to_string() + &self.id.to_string()),
         );
         attr_map.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
         attr_map.insert("id".to_string(), AttributeValue::S(self.id.to_string()));
-        attr_map.insert("name".to_string(), AttributeValue::S(self.name.to_string()));
+        attr_map.insert("product_name".to_string(), AttributeValue::S(self.product_name.to_string()));
         attr_map.insert("price_cents".to_string(), AttributeValue::N(self.price_cents.to_string()));
         attr_map.insert("description".to_string(), AttributeValue::S(self.description.to_string()));
         attr_map.insert("created_at".to_string(), AttributeValue::N(self.created_at.to_string()));
@@ -69,7 +69,7 @@ impl DynamoDbModel for Product {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct MutableProduct {
-    pub name: Option<String>,
+    pub product_name: Option<String>,
     pub price_cents: Option<i32>,
     pub description: Option<String>,
 }
@@ -77,16 +77,16 @@ pub struct MutableProduct {
 impl MutableProduct {
     pub fn into_attr_map(&self) -> std::collections::HashMap<String, AttributeValue> {
         let mut attr_map = std::collections::HashMap::new();
-        if self.name.is_some() {
-            attr_map.insert("name".to_string(), AttributeValue::S(self.name.clone().unwrap()));
+        if self.product_name.is_some() {
+            attr_map.insert(":product_name".to_string(), AttributeValue::S(self.product_name.clone().unwrap()));
         }
         if self.price_cents.is_some() {
-            attr_map.insert("price_cents".to_string(), AttributeValue::N(self.price_cents.unwrap().to_string()));
+            attr_map.insert(":price_cents".to_string(), AttributeValue::N(self.price_cents.unwrap().to_string()));
         }
         if self.description.is_some() {
-            attr_map.insert("description".to_string(), AttributeValue::S(self.description.clone().unwrap().to_string()));
+            attr_map.insert(":description".to_string(), AttributeValue::S(self.description.clone().unwrap().to_string()));
         }
-        attr_map.insert("updated_at".to_string(), AttributeValue::N(default_time()));
+        attr_map.insert(":updated_at".to_string(), AttributeValue::N(default_time()));
         attr_map
     }
 }
@@ -116,7 +116,7 @@ impl<'a> ProductRepositoryAdaptor<'a> {
 #[async_trait]
 impl<'a> ProductRepositoryPort for ProductRepositoryAdaptor<'a> {
     async fn product_get_by_id(&self, id: &String) -> Result<Option<Product>, HexagonalError> {
-        let result = self.persistance_repository.get_item_primary("product_".to_string() + id, "-".to_string()).await;
+        let result = self.persistance_repository.get_item_primary("PRODUCT#".to_string() + id, "-".to_string()).await;
 
         match result {
             Ok(result) => {
@@ -136,8 +136,10 @@ impl<'a> ProductRepositoryPort for ProductRepositoryAdaptor<'a> {
     async fn product_create(&self, product: &Product) -> Result<Product, HexagonalError> {
         let result = self.persistance_repository.put_new_item(product.into_attr_map()).await;
 
+        println!("result: {:?}", result);
+
         match result {
-            Ok(output) => Ok(Product::from_attr_map(output.attributes.unwrap())),
+            Ok(_) => Ok(product.clone()),
             Err(e) => Err(HexagonalError {
                 error: error::HexagonalErrorCode::AdaptorError,
                 message: "Unable to create product".to_string(),
@@ -151,25 +153,25 @@ impl<'a> ProductRepositoryPort for ProductRepositoryAdaptor<'a> {
         let mut update_expression = "SET ".to_string();
         let mut attr_names = HashMap::new();
 
-        if product_update.name.is_some() {
-            update_expression.push_str("#name_key = :name, ");
-            attr_names.insert("#name_key".to_string(), "name".to_string());
+        if product_update.product_name.is_some() {
+            update_expression.push_str("#name_key = :product_name, ");
+            attr_names.insert("#name_key".to_string(), "product_name".to_string());
         }
 
         if product_update.price_cents.is_some() {
             update_expression.push_str("#price_cents_key = :price_cents, ");
-            attr_names.insert("#price_cents".to_string(), "price_cents".to_string());
+            attr_names.insert("#price_cents_key".to_string(), "price_cents".to_string());
         }
 
         if product_update.description.is_some() {
             update_expression.push_str("#description_key = :description, ");
-            attr_names.insert("#description".to_string(), "description".to_string());
+            attr_names.insert("#description_key".to_string(), "description".to_string());
         }
 
         update_expression.push_str("updated_at = :updated_at");
 
         let result = self.persistance_repository.update_item(
-            "product_".to_string() + id, 
+            "PRODUCT#".to_string() + id, 
             "-".to_string(),
             update_expression,
             Some(attr_names),
@@ -178,19 +180,35 @@ impl<'a> ProductRepositoryPort for ProductRepositoryAdaptor<'a> {
 
         match result {
             Ok(output) => Ok(Product::from_attr_map(output.attributes.unwrap())),
-            Err(e) => Err(HexagonalError {
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "Unable to update product".to_string(),
-                trace: e.to_string(),
-            }),
+            Err(e) => {
+                match e.is_conditional_check_failed_exception() {
+                    true => Err(HexagonalError {
+                        error: error::HexagonalErrorCode::NotFound,
+                        message: "Unable to update product, does not exist".to_string(),
+                        trace: "".to_string(),
+                    }),
+                    false => Err(HexagonalError {
+                        error: error::HexagonalErrorCode::AdaptorError,
+                        message: "Unable to update product".to_string(),
+                        trace: e.to_string(),
+                    }),
+                }
+            },
         }
     }
 
     async fn product_delete_by_id(&self, id: &String) -> Result<Product, HexagonalError> {
-        let result = self.persistance_repository.delete_item("product_".to_string() + id, "-".to_string()).await;
+        let result = self.persistance_repository.delete_item("PRODUCT#".to_string() + id, "-".to_string()).await;
 
         match result {
-            Ok(output) => Ok(Product::from_attr_map(output.attributes.unwrap())),
+            Ok(output) => match output.attributes {
+                Some(attributes) => Ok(Product::from_attr_map(attributes)),
+                None => Err(HexagonalError {
+                    error: error::HexagonalErrorCode::NotFound,
+                    message: "Unable to delete product, does not exist".to_string(),
+                    trace: "".to_string(),
+                }),
+            }
             Err(e) => Err(HexagonalError {
                 error: error::HexagonalErrorCode::AdaptorError,
                 message: "Unable to delete product".to_string(),

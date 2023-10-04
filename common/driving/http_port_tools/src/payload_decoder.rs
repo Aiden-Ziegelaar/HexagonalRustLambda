@@ -28,7 +28,7 @@ macro_rules! http_payload_decoder {
             Err(e) => {
                 let err_msg = e
                     .enumerate()
-                    .fold("".to_string(), |acc, x| format!("{} \n {}", acc, x.1));
+                    .fold("".to_string(), |acc, x| format!("{}, {}", acc, x.1));
 
                 let err = error::HexagonalError {
                     error: error::HexagonalErrorCode::BadInput,

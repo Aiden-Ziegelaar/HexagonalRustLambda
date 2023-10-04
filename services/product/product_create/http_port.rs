@@ -14,10 +14,10 @@ lazy_static! {
         let schema = json!({
             "type": "object",
             "properties": {
-                "name": {
+                "product_name": {
                     "type": "string"
                 },
-                "price": {
+                "price_cents": {
                     "type": "number"
                 },
                 "description": {
@@ -25,8 +25,8 @@ lazy_static! {
                 }
             },
             "required": [
-                "name",
-                "price",
+                "product_name",
+                "price_cents",
                 "description"
             ],
             "additionalProperties": false

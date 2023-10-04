@@ -20,7 +20,7 @@ mod tests {
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
-            name: "test".to_string(),
+            product_name: "test".to_string(),
             description: "test".to_string(),
             price_cents: 10000,
             created_at: default_time(),
@@ -44,7 +44,7 @@ mod tests {
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
-            name: "test".to_string(),
+            product_name: "test".to_string(),
             description: "test".to_string(),
             price_cents: 10000,
             created_at: default_time(),

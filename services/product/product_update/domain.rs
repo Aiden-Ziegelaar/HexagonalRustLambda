@@ -8,7 +8,7 @@ pub async fn product_update_core<T1: ProductRepositoryPort, T2: EventingPort>(
     id: &String,
     product_updates: MutableProduct,
 ) -> Result<Product, HexagonalError> {
-    if product_updates.price_cents.is_none() && product_updates.name.is_none() && product_updates.description.is_none() {
+    if product_updates.price_cents.is_none() && product_updates.product_name.is_none() && product_updates.description.is_none() {
         return Err(HexagonalError {
             error: error::HexagonalErrorCode::BadInput,
             message: "No update parameters specified".to_string(),
@@ -44,7 +44,7 @@ mod tests {
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
-            name: "test".to_string(),
+            product_name: "test".to_string(),
             description: "test".to_string(),
             price_cents: 10000,
             created_at: default_time(),
@@ -52,7 +52,7 @@ mod tests {
         };
 
         let mutable_product = MutableProduct {
-            name: Some("test".to_string()),
+            product_name: Some("test".to_string()),
             description: Some("test".to_string()),
             price_cents: Some(10000),
         };
@@ -83,7 +83,7 @@ mod tests {
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
-            name: "test".to_string(),
+            product_name: "test".to_string(),
             description: "test".to_string(),
             price_cents: 10000,
             created_at: default_time(),
@@ -91,7 +91,7 @@ mod tests {
         };
 
         let mutable_product = MutableProduct {
-            name: Some("test".to_string()),
+            product_name: Some("test".to_string()),
             description: Some("test".to_string()),
             price_cents: Some(10000),
         };
@@ -126,7 +126,7 @@ mod tests {
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
-            name: "test".to_string(),
+            product_name: "test".to_string(),
             description: "test".to_string(),
             price_cents: 10000,
             created_at: default_time(),
@@ -134,7 +134,7 @@ mod tests {
         };
 
         let mutable_product = MutableProduct {
-            name: Some("test".to_string()),
+            product_name: Some("test".to_string()),
             description: Some("test".to_string()),
             price_cents: Some(10000),
         };

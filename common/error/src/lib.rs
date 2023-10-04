@@ -48,6 +48,7 @@ impl HexagonalErrorCode {
 
 impl HexagonalError {
     pub fn compile_to_json(&self) -> String {
+        println!("Error: {:?}", self);
         serde_json::to_string(&self).unwrap()
     }
 

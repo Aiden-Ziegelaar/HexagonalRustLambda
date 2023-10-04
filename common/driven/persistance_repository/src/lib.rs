@@ -91,6 +91,7 @@ impl DynamoDBSingleTableRepository {
             .table_name(self.table_name.clone())
             .key("Pkey", p_key_att)
             .key("Skey", s_key_att)
+            .return_values(aws_sdk_dynamodb::types::ReturnValue::AllOld)
             .send()
             .await
             .map_err(|e| e.into_service_error())
@@ -132,6 +133,9 @@ impl DynamoDBSingleTableRepository {
             .return_values(aws_sdk_dynamodb::types::ReturnValue::AllNew)
             .send()
             .await
-            .map_err(|e| e.into_service_error())
+            .map_err(|e| {
+                println!("error: {:?}", e);
+                e.into_service_error()
+            })
     }
 }
