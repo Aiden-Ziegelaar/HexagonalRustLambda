@@ -11,3 +11,6 @@ http = { workspace = true }
 lambda_http = { workspace = true }
 lambda_adaptor = { workspace = true }
 query_map = { workspace = true }
+
+[lib]
+doctest = false

@@ -13,3 +13,6 @@ http = { workspace = true }
 sdk_credential_meta_repository = { workspace = true }
 tokio = { workspace = true }
 error = { workspace = true }
+
+[lib]
+doctest = false

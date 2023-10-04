@@ -14,6 +14,14 @@ path = "product_create/http_adaptor.rs"
 name = "product_delete"
 path = "product_delete/http_adaptor.rs"
 
+[[bin]]
+name = "product_get"
+path = "product_get/http_adaptor.rs"
+
+[[bin]]
+name = "product_update"
+path = "product_update/http_adaptor.rs"
+
 [dependencies]
 http = { workspace = true }
 jsonschema = { workspace = true }

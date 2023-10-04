@@ -13,7 +13,6 @@ describe('Update User Username', function () {
         }
 
         let username_patch = {
-            email: user.email,
             username: faker.internet.userName(),
         }
 
@@ -25,10 +24,10 @@ describe('Update User Username', function () {
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        await axios.put(`${process.env.INF_API_ENDPOINT}main/user/username`, 
+        let put_res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/username`, 
             username_patch,
             {
-                validateStatus: () => true,
+                params: { email: user.email }
             }
         )
 
@@ -37,8 +36,9 @@ describe('Update User Username', function () {
         )
 
         //assert
-        expect(res.data).to.include(patched_user)
+        assert.equal(put_res.status, 200)
         assert.equal(res.status, 200)
+        expect(res.data).to.include(patched_user)
     })
 
     it('should allow creation of a user with a username that was previously taken after update', async function () {
@@ -58,23 +58,23 @@ describe('Update User Username', function () {
         }
 
         let username_patch = {
-            email: user.email,
             username: faker.internet.userName(),
         }
 
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        await axios.put(`${process.env.INF_API_ENDPOINT}main/user/username`, 
+        let put_res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/username`, 
             username_patch,
             {
-                validateStatus: () => true,
+                params: { email: user.email }
             }
         )
 
         let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user_after_update)
 
         //assert
+        assert.equal(put_res.status, 200)
         expect(res.data).to.include(user_after_update)
         assert.equal(res.status, 201)
     })
@@ -89,7 +89,6 @@ describe('Update User Username', function () {
         }
 
         let username_patch = {
-            email: user.email,
             username: faker.internet.userName(),
         }
 
@@ -106,7 +105,7 @@ describe('Update User Username', function () {
         await axios.put(`${process.env.INF_API_ENDPOINT}main/user/username`, 
             username_patch,
             {
-                validateStatus: () => true,
+                params: { email: user.email }
             }
         )
 

@@ -5,3 +5,6 @@ authors.workspace = true
 description = "Tools for use inside HTTP ports"
 documentation.workspace = true
 edition.workspace = true
+
+[lib]
+doctest = false

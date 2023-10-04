@@ -1,5 +1,6 @@
 use crate::domain::user_update_core;
 
+use error::HexagonalError;
 use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
 use http_apigw_adaptor::HttpPortRequest;
@@ -19,14 +20,9 @@ lazy_static! {
                 },
                 "last": {
                     "type": "string"
-                },
-                "email": {
-                    "type": "string"
                 }
             },
-            "required": [
-                "email"
-            ],
+            "required": [],
             "additionalProperties": false
         });
         JSONSchema::options()
@@ -41,9 +37,20 @@ pub async fn user_update_put_http_port<T1: UserRepositoryPort, T2: EventingPort>
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
+    let email = match http_request.query_string_parameters.first("email") {
+        Some(value) => value,
+        None => {
+            let err = HexagonalError {
+                error: error::HexagonalErrorCode::BadInput,
+                message: "email is required".to_string(),
+                trace: "".to_string(),
+            };
+            return Ok(err.compile_to_http_response());
+        }
+    };
     let payload = http_request.payload;
     let user_updates = http_payload_decoder!(MutableUser, USER_SCHEMA, payload);
-    match user_update_core(user_repository_port, eventing_port, user_updates).await {
+    match user_update_core(user_repository_port, eventing_port, &email.to_string(), user_updates).await {
         Ok(user) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

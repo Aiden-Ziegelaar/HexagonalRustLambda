@@ -20,3 +20,6 @@ mockall = { workspace = true }
 # Monorepo
 models = { workspace = true }
 error = { workspace = true }
+
+[lib]
+doctest = false

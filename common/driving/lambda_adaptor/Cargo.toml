@@ -11,3 +11,6 @@ sdk_credential_meta_repository = { workspace = true }
 
 [features]
 none = []
+
+[lib]
+doctest = false

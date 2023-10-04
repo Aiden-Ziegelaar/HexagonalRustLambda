@@ -5,9 +5,10 @@ use models::models::user::{MutableUser, User, UserRepositoryPort};
 pub async fn user_update_core<T1: UserRepositoryPort, T2: EventingPort>(
     user_repository_port: &T1,
     eventing_port: &T2,
-    who: MutableUser,
+    email: &String,
+    update: MutableUser,
 ) -> Result<User, HexagonalError> {
-    if who.first.is_none() && who.last.is_none() {
+    if update.first.is_none() && update.last.is_none() {
         return Err(HexagonalError {
             error: error::HexagonalErrorCode::BadInput,
             message: "No update parameters specified".to_string(),
@@ -15,7 +16,7 @@ pub async fn user_update_core<T1: UserRepositoryPort, T2: EventingPort>(
         });
     }
 
-    let user = user_repository_port.user_update_by_email(who).await;
+    let user = user_repository_port.user_update_by_email(email, update).await;
 
     if user.is_ok() {
         let event_result = eventing_port
@@ -51,7 +52,6 @@ mod tests {
         };
 
         let mutable_user = MutableUser {
-            email: user.email.clone(),
             first: Some("first".to_string()),
             last: Some("last".to_string()),
         };
@@ -61,7 +61,7 @@ mod tests {
         user_repository_port
             .expect_user_update_by_email()
             .times(1)
-            .returning(move |_| Ok(return_user.clone()));
+            .returning(move |_, _| Ok(return_user.clone()));
 
         eventing_port
             .expect_emit::<EventUserUpdatedV1>()
@@ -70,7 +70,7 @@ mod tests {
 
         // Act
         let result =
-            user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
+            user_update_core(&user_repository_port, &eventing_port, &user.email, mutable_user.clone()).await;
 
         // Assert
         assert!(result.is_ok());
@@ -93,14 +93,13 @@ mod tests {
         };
 
         let mutable_user = MutableUser {
-            email: user.email.clone(),
             first: None,
             last: None,
         };
 
         // Act
         let result =
-            user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
+            user_update_core(&user_repository_port, &eventing_port, &user.email, mutable_user.clone()).await;
 
         // Assert
         assert!(result.is_err());
@@ -126,7 +125,6 @@ mod tests {
         };
 
         let mutable_user = MutableUser {
-            email: user.email.clone(),
             first: Some("first".to_string()),
             last: Some("last".to_string()),
         };
@@ -134,7 +132,7 @@ mod tests {
         user_repository_port
             .expect_user_update_by_email()
             .times(1)
-            .returning(move |_| {
+            .returning(move |_, _| {
                 Err(HexagonalError {
                     error: error::HexagonalErrorCode::AdaptorError,
                     message: "test".to_string(),
@@ -144,7 +142,7 @@ mod tests {
 
         // Act
         let result =
-            user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
+            user_update_core(&user_repository_port, &eventing_port, &user.email, mutable_user.clone()).await;
 
         // Assert
         assert!(result.is_err());
@@ -170,15 +168,16 @@ mod tests {
         };
 
         let mutable_user = MutableUser {
-            email: user.email.clone(),
             first: Some("first".to_string()),
             last: Some("last".to_string()),
         };
 
+        let return_user = user.clone();
+
         user_repository_port
             .expect_user_update_by_email()
             .times(1)
-            .returning(move |_| Ok(user.clone()));
+            .returning(move |_, _| Ok(return_user.clone()));
 
         eventing_port
             .expect_emit::<EventUserUpdatedV1>()
@@ -193,7 +192,7 @@ mod tests {
 
         // Act
         let result =
-            user_update_core(&user_repository_port, &eventing_port, mutable_user.clone()).await;
+            user_update_core(&user_repository_port, &eventing_port, &user.email, mutable_user.clone()).await;
 
         // Assert
         assert!(result.is_err());

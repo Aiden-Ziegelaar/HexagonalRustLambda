@@ -2,26 +2,26 @@ use serde::{Deserialize, Serialize};
 
 use crate::events::event_emmiter::SerialisableEvent;
 
-const EVENT_TYPE: &str = "user_updated";
+const EVENT_TYPE: &str = "product_updated";
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct EventUserUpdatedV1 {
+pub struct EventProductUpdatedV1 {
     pub version: u32,
     pub event_type: String,
-    pub user: models::models::user::User,
+    pub product: models::models::product::Product,
 }
 
-impl EventUserUpdatedV1 {
-    pub fn new(user: models::models::user::User) -> Self {
+impl EventProductUpdatedV1 {
+    pub fn new(product: models::models::product::Product) -> Self {
         Self {
             version: 1,
             event_type: EVENT_TYPE.to_string(),
-            user,
+            product,
         }
     }
 }
 
-impl SerialisableEvent for EventUserUpdatedV1 {
+impl SerialisableEvent for EventProductUpdatedV1 {
     fn get_event_type(&self) -> &String {
         &self.event_type
     }

@@ -1,4 +1,4 @@
-use crate::domain::user_username_update_core;
+use crate::domain::product_update_core;
 
 use error::HexagonalError;
 use eventing::EventingPort;
@@ -7,22 +7,25 @@ use http_apigw_adaptor::HttpPortRequest;
 use http_port_tools::http_payload_decoder;
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;
-use models::models::user::UserRepositoryPort;
-use serde::{Deserialize, Serialize};
+use models::models::product::{MutableProduct, ProductRepositoryPort};
 use serde_json::json;
 
 lazy_static! {
-    static ref USER_SCHEMA: JSONSchema = {
+    static ref PRODUCT_SCHEMA: JSONSchema = {
         let schema = json!({
             "type": "object",
             "properties": {
-                "username": {
+                "name": {
+                    "type": "string"
+                },
+                "price_cents": {
+                    "type": "number"
+                },
+                "description": {
                     "type": "string"
                 }
             },
-            "required": [
-                "username"
-            ],
+            "required": [], 
             "additionalProperties": false
         });
         JSONSchema::options()
@@ -32,50 +35,32 @@ lazy_static! {
     };
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct UserUsernameUpdate {
-    username: String
-}
-
-pub async fn user_username_update_put_http_port<T1: UserRepositoryPort, T2: EventingPort>(
-    user_repository_port: &T1,
+pub async fn product_update_put_http_port<T1: ProductRepositoryPort, T2: EventingPort>(
+    product_repository_port: &T1,
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let email = match http_request.query_string_parameters.first("email") {
+    let id = match http_request.query_string_parameters.first("id") {
         Some(value) => value,
         None => {
             let err = HexagonalError {
                 error: error::HexagonalErrorCode::BadInput,
-                message: "email is required".to_string(),
+                message: "id is required".to_string(),
                 trace: "".to_string(),
             };
             return Ok(err.compile_to_http_response());
         }
     };
     let payload = http_request.payload;
-    let user_updates = http_payload_decoder!(UserUsernameUpdate, USER_SCHEMA, payload);
-    match user_username_update_core(
-        user_repository_port,
-        eventing_port,
-        &email.to_string(),
-        &user_updates.username,
-    )
-    .await
-    {
-        Ok(user) => {
+    let product_updates = http_payload_decoder!(MutableProduct, PRODUCT_SCHEMA, payload);
+    match product_update_core(product_repository_port, eventing_port, &id.to_string(), product_updates).await {
+        Ok(product) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)
                 .header("content-type", "application/json")
-                .body(serde_json::to_string(&user).unwrap());
+                .body(serde_json::to_string(&product).unwrap());
             Ok(resp.unwrap())
         }
-        Err(_) => {
-            let resp = Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .header("content-type", "application/json")
-                .body("".to_string());
-            Ok(resp.unwrap())
-        }
+        Err(err) => Ok(err.compile_to_http_response()),
     }
 }

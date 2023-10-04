@@ -9,3 +9,6 @@ edition.workspace = true
 [dependencies]
 aws-config = { workspace = true }
 tokio = { workspace = true }
+
+[lib]
+doctest = false

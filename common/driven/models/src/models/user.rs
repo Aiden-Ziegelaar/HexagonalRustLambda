@@ -25,7 +25,6 @@ pub struct User {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MutableUser {
-    pub email: String,
     pub first: Option<String>,
     pub last: Option<String>,
 }
@@ -36,12 +35,12 @@ impl DynamoDbModel for User {
         let mut item = HashMap::new();
         item.insert(
             "Pkey".to_string(),
-            AttributeValue::S("user_".to_string() + &self.email.clone()),
+            AttributeValue::S("USER#".to_string() + &self.email.clone()),
         );
         item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
         item.insert(
             "GSI1Pkey".to_string(),
-            AttributeValue::S("user_".to_string() + &self.username.clone()),
+            AttributeValue::S("USER#".to_string() + &self.username.clone()),
         );
         item.insert("GSI1Skey".to_string(), AttributeValue::S("-".to_string()));
         item.insert("first".to_string(), AttributeValue::S(self.first.clone()));
@@ -79,7 +78,7 @@ impl User {
         let mut item = HashMap::new();
         item.insert(
             "Pkey".to_string(),
-            AttributeValue::S("user_username_".to_string() + &self.username.clone()),
+            AttributeValue::S("USER#USERNAME#".to_string() + &self.username.clone()),
         );
         item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
         item.insert("email".to_string(), AttributeValue::S(self.email.clone()));
@@ -114,7 +113,7 @@ pub trait UserRepositoryPort {
     async fn user_get_by_email(&self, email: &String) -> Result<Option<User>, HexagonalError>;
     async fn user_get_by_username(&self, username: &String) -> Result<Vec<User>, HexagonalError>;
     async fn user_create(&self, user: &User) -> Result<User, HexagonalError>;
-    async fn user_update_by_email(&self, user: MutableUser) -> Result<User, HexagonalError>;
+    async fn user_update_by_email(&self, email: &String, user: MutableUser) -> Result<User, HexagonalError>;
     async fn user_update_username_by_email(
         &self,
         email: &String,
@@ -140,7 +139,7 @@ impl <'a>UserRepositoryPort for UserRepositoryAdaptor<'a> {
     async fn user_get_by_email(&self, email: &String) -> Result<Option<User>, HexagonalError> {
         let result = self
             .persistance_repository
-            .get_item_primary(format!("user_{}", email.to_string()), "-".to_string())
+            .get_item_primary(format!("USER#{}", email.to_string()), "-".to_string())
             .await;
 
         match result {
@@ -269,7 +268,7 @@ impl <'a>UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .map(|_| user.clone())
     }
 
-    async fn user_update_by_email(&self, user: MutableUser) -> Result<User, HexagonalError> {
+    async fn user_update_by_email(&self, email: &String, user: MutableUser) -> Result<User, HexagonalError> {
         let mut update_expression = "SET ".to_string();
         let mut attr_names = HashMap::new();
 
@@ -288,7 +287,7 @@ impl <'a>UserRepositoryPort for UserRepositoryAdaptor<'a> {
         let result = self
             .persistance_repository
             .update_item(
-                format!("user_{}", user.email.to_string()),
+                format!("USER#{}", email.to_string()),
                 "-".to_string(),
                 update_expression.to_string(),
                 Some(attr_names),
@@ -346,7 +345,7 @@ impl <'a>UserRepositoryPort for UserRepositoryAdaptor<'a> {
         let mut username_item = HashMap::new();
         username_item.insert(
             "Pkey".to_string(),
-            AttributeValue::S("user_username_".to_string() + new_username),
+            AttributeValue::S("USER#USERNAME#".to_string() + new_username),
         );
         username_item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
         username_item.insert("email".to_string(), AttributeValue::S(email.clone()));
@@ -372,7 +371,7 @@ impl <'a>UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .update_expression(update_user_expression.to_string())
             .key(
                 "Pkey",
-                AttributeValue::S("user_".to_string() + &email),
+                AttributeValue::S("USER#".to_string() + &email),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .set_expression_attribute_values(Some(attribute_values))
@@ -385,7 +384,7 @@ impl <'a>UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .table_name(self.persistance_repository.table_name.clone())
             .key(
                 "Pkey",
-                AttributeValue::S("user_username_".to_string() + &old_username),
+                AttributeValue::S("USER#USERNAME#".to_string() + &old_username),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();
@@ -471,7 +470,7 @@ impl <'a>UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .table_name(self.persistance_repository.table_name.clone())
             .key(
                 "Pkey",
-                AttributeValue::S("user_username_".to_string() + &unwrapped_user.username),
+                AttributeValue::S("USER#USERNAME#".to_string() + &unwrapped_user.username),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();
@@ -480,7 +479,7 @@ impl <'a>UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .table_name(self.persistance_repository.table_name.clone())
             .key(
                 "Pkey",
-                AttributeValue::S("user_".to_string() + email),
+                AttributeValue::S("USER#".to_string() + email),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();

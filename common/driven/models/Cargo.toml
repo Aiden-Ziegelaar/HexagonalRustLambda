@@ -16,3 +16,6 @@ error = { workspace = true }
 async-trait = { workspace = true }
 uuid = { workspace = true }
 mockall ={ workspace = true }
+
+[lib]
+doctest = false

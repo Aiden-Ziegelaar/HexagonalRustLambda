@@ -16,7 +16,7 @@ pub async fn product_delete_delete_http_port<T1: ProductRepositoryPort, T2: Even
         None => {
             let err = HexagonalError {
                 error: error::HexagonalErrorCode::BadInput,
-                message: "email is required".to_string(),
+                message: "id is required".to_string(),
                 trace: "".to_string(),
             };
             return Ok(err.compile_to_http_response());
