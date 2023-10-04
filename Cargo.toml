@@ -2,6 +2,7 @@
 members = [
   # Service Definitions 
   "services/users",
+  "services/product",
   # Common Library Definitions
   "common/driving/*",
   "common/driven/*",

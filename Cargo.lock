@@ -1607,6 +1607,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "product_service"
+version = "0.0.0"
+dependencies = [
+ "aws-config",
+ "error",
+ "eventing",
+ "http",
+ "http_apigw_adaptor",
+ "http_port_tools",
+ "jsonschema",
+ "lambda_adaptor",
+ "lambda_http",
+ "lambda_runtime",
+ "lazy_static",
+ "mockall",
+ "models",
+ "persistance_repository",
+ "query_map",
+ "sdk_credential_meta_repository",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "query_map"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
