@@ -263,7 +263,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
     async fn cart_clear(&self, user_id: &String) -> Result<(), HexagonalError> {
         let query_expression = "Pkey = :pk AND begins_with(Skey, :sk)";
         
-        let expression_attribute_values = std::collections::HashMap::new();
+        let mut expression_attribute_values = std::collections::HashMap::new();
         expression_attribute_values.insert(":pk".to_string(), AttributeValue::S("CART#USER#".to_string() + &user_id.to_string()));
         expression_attribute_values.insert(":sk".to_string(), AttributeValue::S("PRODUCT#".to_string()));
 
