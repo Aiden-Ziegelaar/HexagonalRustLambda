@@ -25,7 +25,7 @@ lazy_static! {
                     "type": "string"
                 }
             },
-            "required": [], 
+            "required": [],
             "additionalProperties": false
         });
         JSONSchema::options()
@@ -53,7 +53,14 @@ pub async fn product_update_put_http_port<T1: ProductRepositoryPort, T2: Eventin
     };
     let payload = http_request.payload;
     let product_updates = http_payload_decoder!(MutableProduct, PRODUCT_SCHEMA, payload);
-    match product_update_core(product_repository_port, eventing_port, &id.to_string(), product_updates).await {
+    match product_update_core(
+        product_repository_port,
+        eventing_port,
+        &id.to_string(),
+        product_updates,
+    )
+    .await
+    {
         Ok(product) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

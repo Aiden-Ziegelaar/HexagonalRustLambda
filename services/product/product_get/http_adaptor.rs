@@ -30,10 +30,10 @@ async fn main() -> Result<(), Error> {
     // Provision required repositories once in the main function
     let sdk_credential_meta_repository =
         sdk_credential_meta_repository::SdkCredentialsMetaRepository::new().await;
-    let dynamo_db_repository = persistance_repository::DynamoDBSingleTableRepository::new(
-        &sdk_credential_meta_repository,
-    );
-    let product_repository = models::models::product::ProductRepositoryAdaptor::new(&dynamo_db_repository);
+    let dynamo_db_repository =
+        persistance_repository::DynamoDBSingleTableRepository::new(&sdk_credential_meta_repository);
+    let product_repository =
+        models::models::product::ProductRepositoryAdaptor::new(&dynamo_db_repository);
 
     run(service_fn(|event| {
         http_lambda_driving_adaptor(&product_repository, event)

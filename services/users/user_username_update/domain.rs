@@ -52,13 +52,9 @@ mod tests {
             .returning(move |_| Ok(()));
 
         // Act
-        let result = user_username_update_core(
-            &user_repository_port,
-            &eventing_port,
-            &email,
-            &username,
-        )
-        .await;
+        let result =
+            user_username_update_core(&user_repository_port, &eventing_port, &email, &username)
+                .await;
 
         // Assert
         assert!(result.is_ok());
@@ -85,13 +81,9 @@ mod tests {
             });
 
         // Act
-        let result = user_username_update_core(
-            &user_repository_port,
-            &eventing_port,
-            &email,
-            &username,
-        )
-        .await;
+        let result =
+            user_username_update_core(&user_repository_port, &eventing_port, &email, &username)
+                .await;
 
         // Assert
         assert!(result.is_err());
@@ -123,13 +115,9 @@ mod tests {
             });
 
         // Act
-        let result = user_username_update_core(
-            &user_repository_port,
-            &eventing_port,
-            &email,
-            &username,
-        )
-        .await;
+        let result =
+            user_username_update_core(&user_repository_port, &eventing_port, &email, &username)
+                .await;
 
         // Assert
         assert!(result.is_err());

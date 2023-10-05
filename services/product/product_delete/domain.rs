@@ -7,9 +7,7 @@ pub async fn product_delete_core<T1: ProductRepositoryPort, T2: EventingPort>(
     eventing_port: &T2,
     id: &String,
 ) -> Result<Product, HexagonalError> {
-    let product = product_repository_port
-        .product_delete_by_id(id)
-        .await;
+    let product = product_repository_port.product_delete_by_id(id).await;
 
     if product.is_ok() {
         let event_result = eventing_port
@@ -32,7 +30,7 @@ mod tests {
     #[tokio::test]
     async fn test_product_delete_core() {
         let mut product_repository_port = models::models::product::MockProductRepositoryPort::new();
-        let mut eventing_port = eventing::MockEventingPort::new();  
+        let mut eventing_port = eventing::MockEventingPort::new();
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
@@ -54,7 +52,8 @@ mod tests {
             .times(1)
             .returning(|_| Ok(()));
 
-        let result = product_delete_core(&product_repository_port, &eventing_port, &product.id).await;
+        let result =
+            product_delete_core(&product_repository_port, &eventing_port, &product.id).await;
 
         assert!(result.is_ok());
     }
@@ -62,7 +61,7 @@ mod tests {
     #[tokio::test]
     async fn test_product_delete_core_eventing_error() {
         let mut product_repository_port = models::models::product::MockProductRepositoryPort::new();
-        let mut eventing_port = eventing::MockEventingPort::new();  
+        let mut eventing_port = eventing::MockEventingPort::new();
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
@@ -82,13 +81,16 @@ mod tests {
         eventing_port
             .expect_emit::<EventProductDeletedV1>()
             .times(1)
-            .returning(|_| Err(HexagonalError {
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "test".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(|_| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
-        let result = product_delete_core(&product_repository_port, &eventing_port, &product.id).await;
+        let result =
+            product_delete_core(&product_repository_port, &eventing_port, &product.id).await;
 
         assert!(result.is_err());
     }
@@ -96,7 +98,7 @@ mod tests {
     #[tokio::test]
     async fn test_product_delete_core_product_error() {
         let mut product_repository_port = models::models::product::MockProductRepositoryPort::new();
-        let mut eventing_port = eventing::MockEventingPort::new();  
+        let mut eventing_port = eventing::MockEventingPort::new();
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
@@ -106,22 +108,24 @@ mod tests {
             created_at: default_time(),
             updated_at: default_time(),
         };
-        
 
         product_repository_port
             .expect_product_delete_by_id()
-            .returning(move |_| Err(HexagonalError {
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "test".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(move |_| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         eventing_port
             .expect_emit::<EventProductDeletedV1>()
             .times(0)
             .returning(|_| Ok(()));
 
-        let result = product_delete_core(&product_repository_port, &eventing_port, &product.id).await;
+        let result =
+            product_delete_core(&product_repository_port, &eventing_port, &product.id).await;
 
         assert!(result.is_err());
     }

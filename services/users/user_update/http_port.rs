@@ -50,7 +50,14 @@ pub async fn user_update_put_http_port<T1: UserRepositoryPort, T2: EventingPort>
     };
     let payload = http_request.payload;
     let user_updates = http_payload_decoder!(MutableUser, USER_SCHEMA, payload);
-    match user_update_core(user_repository_port, eventing_port, &email.to_string(), user_updates).await {
+    match user_update_core(
+        user_repository_port,
+        eventing_port,
+        &email.to_string(),
+        user_updates,
+    )
+    .await
+    {
         Ok(user) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

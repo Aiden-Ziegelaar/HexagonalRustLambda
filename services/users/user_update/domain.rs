@@ -16,7 +16,9 @@ pub async fn user_update_core<T1: UserRepositoryPort, T2: EventingPort>(
         });
     }
 
-    let user = user_repository_port.user_update_by_email(email, update).await;
+    let user = user_repository_port
+        .user_update_by_email(email, update)
+        .await;
 
     if user.is_ok() {
         let event_result = eventing_port
@@ -69,8 +71,13 @@ mod tests {
             .returning(move |_| Ok(()));
 
         // Act
-        let result =
-            user_update_core(&user_repository_port, &eventing_port, &user.email, mutable_user.clone()).await;
+        let result = user_update_core(
+            &user_repository_port,
+            &eventing_port,
+            &user.email,
+            mutable_user.clone(),
+        )
+        .await;
 
         // Assert
         assert!(result.is_ok());
@@ -98,8 +105,13 @@ mod tests {
         };
 
         // Act
-        let result =
-            user_update_core(&user_repository_port, &eventing_port, &user.email, mutable_user.clone()).await;
+        let result = user_update_core(
+            &user_repository_port,
+            &eventing_port,
+            &user.email,
+            mutable_user.clone(),
+        )
+        .await;
 
         // Assert
         assert!(result.is_err());
@@ -141,8 +153,13 @@ mod tests {
             });
 
         // Act
-        let result =
-            user_update_core(&user_repository_port, &eventing_port, &user.email, mutable_user.clone()).await;
+        let result = user_update_core(
+            &user_repository_port,
+            &eventing_port,
+            &user.email,
+            mutable_user.clone(),
+        )
+        .await;
 
         // Assert
         assert!(result.is_err());
@@ -191,8 +208,13 @@ mod tests {
             });
 
         // Act
-        let result =
-            user_update_core(&user_repository_port, &eventing_port, &user.email, mutable_user.clone()).await;
+        let result = user_update_core(
+            &user_repository_port,
+            &eventing_port,
+            &user.email,
+            mutable_user.clone(),
+        )
+        .await;
 
         // Assert
         assert!(result.is_err());

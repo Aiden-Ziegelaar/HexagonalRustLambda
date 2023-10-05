@@ -39,7 +39,8 @@ async fn main() -> Result<(), Error> {
         );
         let eventing_repository =
             eventing::EventingRepository::new(&sdk_credential_meta_repository);
-        let user_repository = models::models::user::UserRepositoryAdaptor::new(&dynamo_db_repository);
+        let user_repository =
+            models::models::user::UserRepositoryAdaptor::new(&dynamo_db_repository);
 
         run(service_fn(|event| {
             http_lambda_driving_adaptor(&user_repository, &eventing_repository, event)

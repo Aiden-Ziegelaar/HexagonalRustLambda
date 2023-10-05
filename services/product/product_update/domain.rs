@@ -8,7 +8,10 @@ pub async fn product_update_core<T1: ProductRepositoryPort, T2: EventingPort>(
     id: &String,
     product_updates: MutableProduct,
 ) -> Result<Product, HexagonalError> {
-    if product_updates.price_cents.is_none() && product_updates.product_name.is_none() && product_updates.description.is_none() {
+    if product_updates.price_cents.is_none()
+        && product_updates.product_name.is_none()
+        && product_updates.description.is_none()
+    {
         return Err(HexagonalError {
             error: error::HexagonalErrorCode::BadInput,
             message: "No update parameters specified".to_string(),
@@ -16,7 +19,9 @@ pub async fn product_update_core<T1: ProductRepositoryPort, T2: EventingPort>(
         });
     }
 
-    let product = product_repository_port.product_update_by_id(id, &product_updates).await;
+    let product = product_repository_port
+        .product_update_by_id(id, &product_updates)
+        .await;
 
     if product.is_ok() {
         let event_result = eventing_port
@@ -69,7 +74,13 @@ mod tests {
             .returning(|_| Ok(()));
 
         // Act
-        let result = product_update_core(&product_repository_port, &eventing_port, &product.id, mutable_product).await;
+        let result = product_update_core(
+            &product_repository_port,
+            &eventing_port,
+            &product.id,
+            mutable_product,
+        )
+        .await;
 
         // Assert
         assert!(result.is_ok());
@@ -105,14 +116,22 @@ mod tests {
         eventing_port
             .expect_emit::<EventProductUpdatedV1>()
             .times(1)
-            .returning(|_| Err(HexagonalError {
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(|_| {
+                Err(HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
-        let result = product_update_core(&product_repository_port, &eventing_port, &product.id, mutable_product).await;
+        let result = product_update_core(
+            &product_repository_port,
+            &eventing_port,
+            &product.id,
+            mutable_product,
+        )
+        .await;
 
         // Assert
         assert!(result.is_err());
@@ -150,7 +169,13 @@ mod tests {
             });
 
         // Act
-        let result = product_update_core(&product_repository_port, &eventing_port, &product.id, mutable_product).await;
+        let result = product_update_core(
+            &product_repository_port,
+            &eventing_port,
+            &product.id,
+            mutable_product,
+        )
+        .await;
 
         // Assert
         assert!(result.is_err());

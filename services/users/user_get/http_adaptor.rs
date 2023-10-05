@@ -30,9 +30,8 @@ async fn main() -> Result<(), Error> {
     // Provision required repositories once in the main function
     let sdk_credential_meta_repository =
         sdk_credential_meta_repository::SdkCredentialsMetaRepository::new().await;
-    let dynamo_db_repository = persistance_repository::DynamoDBSingleTableRepository::new(
-        &sdk_credential_meta_repository,
-    );
+    let dynamo_db_repository =
+        persistance_repository::DynamoDBSingleTableRepository::new(&sdk_credential_meta_repository);
     let user_repository = models::models::user::UserRepositoryAdaptor::new(&dynamo_db_repository);
 
     run(service_fn(|event| {

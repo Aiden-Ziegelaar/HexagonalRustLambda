@@ -23,7 +23,9 @@ pub trait EventingPort {
 }
 
 impl EventingRepository {
-    pub fn new(sdk_credential_meta_repository: &SdkCredentialsMetaRepository) -> EventingRepository {
+    pub fn new(
+        sdk_credential_meta_repository: &SdkCredentialsMetaRepository,
+    ) -> EventingRepository {
         EventingRepository {
             client: Client::new(&sdk_credential_meta_repository.sdk_config),
             bus_name: std::env::var("EVENT_BUS_NAME")

@@ -34,7 +34,7 @@ lazy_static! {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct UserUsernameUpdate {
-    username: String
+    username: String,
 }
 
 pub async fn user_username_update_put_http_port<T1: UserRepositoryPort, T2: EventingPort>(

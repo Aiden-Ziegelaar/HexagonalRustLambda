@@ -6,7 +6,6 @@ pub async fn product_create_core<T1: ProductRepositoryPort, T2: EventingPort>(
     eventing_port: &T2,
     product: Product,
 ) -> Result<Product, error::HexagonalError> {
-
     let product = product_repository_port.product_create(&product).await;
 
     if product.is_ok() {
@@ -27,11 +26,10 @@ mod tests {
 
     use super::*;
 
-
     #[tokio::test]
     async fn test_product_create_core() {
         let mut product_repository_port = models::models::product::MockProductRepositoryPort::new();
-        let mut eventing_port = eventing::MockEventingPort::new();  
+        let mut eventing_port = eventing::MockEventingPort::new();
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
@@ -61,7 +59,7 @@ mod tests {
     #[tokio::test]
     async fn test_product_create_core_eventing_error() {
         let mut product_repository_port = models::models::product::MockProductRepositoryPort::new();
-        let mut eventing_port = eventing::MockEventingPort::new();  
+        let mut eventing_port = eventing::MockEventingPort::new();
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
@@ -81,11 +79,13 @@ mod tests {
         eventing_port
             .expect_emit::<EventProductCreatedV1>()
             .times(1)
-            .returning(|_| Err(error::HexagonalError {
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "test".to_string(),
-                trace: "test".to_string(),
-            }));
+            .returning(|_| {
+                Err(error::HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "test".to_string(),
+                })
+            });
 
         let result = product_create_core(&product_repository_port, &eventing_port, product).await;
 
@@ -95,7 +95,7 @@ mod tests {
     #[tokio::test]
     async fn test_product_create_core_product_error() {
         let mut product_repository_port = models::models::product::MockProductRepositoryPort::new();
-        let mut eventing_port = eventing::MockEventingPort::new();  
+        let mut eventing_port = eventing::MockEventingPort::new();
 
         let product = Product {
             id: uuid::Uuid::new_v4().to_string(),
@@ -108,11 +108,13 @@ mod tests {
 
         product_repository_port
             .expect_product_create()
-            .returning(move |_| Err(error::HexagonalError {
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "test".to_string(),
-                trace: "test".to_string(),
-            }));
+            .returning(move |_| {
+                Err(error::HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "test".to_string(),
+                })
+            });
 
         eventing_port
             .expect_emit::<EventProductCreatedV1>()
@@ -122,5 +124,4 @@ mod tests {
 
         assert!(result.is_err());
     }
-
 }
