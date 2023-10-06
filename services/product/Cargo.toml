@@ -19,6 +19,10 @@ name = "product_get"
 path = "product_get/http_adaptor.rs"
 
 [[bin]]
+name = "product_batch_get"
+path = "product_batch_get/http_adaptor.rs"
+
+[[bin]]
 name = "product_update"
 path = "product_update/http_adaptor.rs"
 

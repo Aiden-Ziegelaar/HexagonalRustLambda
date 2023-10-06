@@ -9,9 +9,13 @@
 
 // Model:
 // Pkey = CART#USER#<user_id>
-// Skey = "PRODUCT#<product_id>"
-// GSI1-Pkey = PRODUCT#<product_id>
+// Skey = CART#PRODUCT#<product_id>
+// GSI1-Pkey = CART#PRODUCT#<product_id>
 // GSI1-Skey = CART#USER#<user_id>
+
+// Assumptions:
+// 1. A single cart does not exceed 1MB of data
+
 
 use std::collections::HashMap;
 
@@ -85,11 +89,11 @@ impl DynamoDbModel for CartItem {
         );
         attr_map.insert(
             "Skey".to_string(),
-            AttributeValue::S("PRODUCT#".to_string() + &self.product_id.to_string()),
+            AttributeValue::S("CART#PRODUCT#".to_string() + &self.product_id.to_string()),
         );
         attr_map.insert(
             "GSI1Pkey".to_string(),
-            AttributeValue::S("PRODUCT#".to_string() + &self.product_id.to_string()),
+            AttributeValue::S("CART#PRODUCT#".to_string() + &self.product_id.to_string()),
         );
         attr_map.insert(
             "GSI1Skey".to_string(),
@@ -123,7 +127,7 @@ impl DynamoDbModel for CartItem {
 #[async_trait]
 trait CartRepositoryPort {
     async fn cart_get_by_user_id(&self, user_id: &String) -> Result<Option<Vec<CartItem>>, HexagonalError>;
-    async fn cart_add_item(&self, user_id: &String, item: &CartItem) -> Result<CartItem, HexagonalError>;
+    async fn cart_add_item(&self, item: &CartItem) -> Result<CartItem, HexagonalError>;
     async fn cart_remove_item(
         &self,
         user_id: &String,
@@ -136,8 +140,7 @@ trait CartRepositoryPort {
         quantity: u32,
     ) -> Result<CartItem, HexagonalError>;
     async fn cart_clear(&self, user_id: &String) -> Result<(), HexagonalError>;
-    async fn cart_global_remove_product(&self, product_id: &String) -> Result<(), HexagonalError>;
-    async fn cart_global_update_product(&self, product_id: &String, product_name: &String) -> Result<(), HexagonalError>;
+    async fn cart_global_remove_product(&self, product_id: &String) -> Result<(), Vec<HexagonalError>>;
 }
 
 pub struct CartRepositoryAdaptor<'a> {
@@ -161,7 +164,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
         
         let mut expression_attribute_values = std::collections::HashMap::new();
         expression_attribute_values.insert(":pk".to_string(), AttributeValue::S("CART#USER#".to_string() + &user_id.to_string()));
-        expression_attribute_values.insert(":sk".to_string(), AttributeValue::S("PRODUCT#".to_string()));
+        expression_attribute_values.insert(":sk".to_string(), AttributeValue::S("CART#PRODUCT#".to_string()));
 
         let query_cart_items = self
             .persistance_repository
@@ -172,7 +175,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
             .set_expression_attribute_values(
                 Some(expression_attribute_values)
             )
-            .send().await;
+            .send().await; // we're making the assumption here that a single cart does not excede 1MB of data
         
         match query_cart_items {
             Ok(result) => {
@@ -193,7 +196,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
         }
     }
 
-    async fn cart_add_item(&self, user_id: &String, item: &CartItem) -> Result<CartItem, HexagonalError> {
+    async fn cart_add_item(&self, item: &CartItem) -> Result<CartItem, HexagonalError> {
         let result = self
             .persistance_repository
             .put_new_item(item.into_attr_map())
@@ -212,7 +215,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
     async fn cart_remove_item(&self, user_id: &String, product_id: &String) -> Result<CartItem, HexagonalError> {
         let result = self
             .persistance_repository
-            .delete_item("CART#USER#".to_string() + &user_id.to_string(), "PRODUCT#".to_string() + &product_id.to_string())
+            .delete_item("CART#USER#".to_string() + &user_id.to_string(), "CART#PRODUCT#".to_string() + &product_id.to_string())
             .await;
 
         match result {
@@ -238,7 +241,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
             .persistance_repository
             .update_item(
                 "CART#USER#".to_string() + &user_id.to_string(),
-                "PRODUCT#".to_string() + &product_id.to_string(),
+                "CART#PRODUCT#".to_string() + &product_id.to_string(),
                 update_expression,
                 Some(attr_names),
                 Some(
@@ -265,7 +268,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
         
         let mut expression_attribute_values = std::collections::HashMap::new();
         expression_attribute_values.insert(":pk".to_string(), AttributeValue::S("CART#USER#".to_string() + &user_id.to_string()));
-        expression_attribute_values.insert(":sk".to_string(), AttributeValue::S("PRODUCT#".to_string()));
+        expression_attribute_values.insert(":sk".to_string(), AttributeValue::S("CART#PRODUCT#".to_string()));
 
         let query_cart_items = self
             .persistance_repository
@@ -291,7 +294,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                         .delete_request(
                             aws_sdk_dynamodb::types::DeleteRequest::builder()
                             .key("Pkey".to_string(), AttributeValue::S("CART#USER#".to_string() + &user_id.to_string()))
-                            .key("Skey".to_string(), AttributeValue::S("PRODUCT#".to_string() + &item.product_id.to_string()))
+                            .key("Skey".to_string(), AttributeValue::S("CART#PRODUCT#".to_string() + &item.product_id.to_string()))
                             .build()
                         ).build()
                 }).collect();
@@ -299,9 +302,16 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                 let delete_chunk_iterator = delete_requests.chunks(25); // need to chunk due to item limit of 25
 
                 for delete_chunk in delete_chunk_iterator {
-                    self.persistance_repository.client.batch_write_item()
+                    let result = self.persistance_repository.client.batch_write_item()
                         .request_items(self.persistance_repository.table_name.clone(), delete_chunk.to_vec())
                         .send().await;
+                    if result.is_err() {
+                        return Err(HexagonalError {
+                            error: error::HexagonalErrorCode::AdaptorError,
+                            message: "Unable to clear cart".to_string(),
+                            trace: result.unwrap_err().to_string(),
+                        });
+                    }
                 }
 
                 Ok(())
@@ -316,65 +326,94 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
         }
     }
 
-    async fn cart_global_remove_product(&self, product_id: &String) -> Result<(), HexagonalError> {
+    async fn cart_global_remove_product(&self, product_id: &String) -> Result<(), Vec<HexagonalError>> {
         let query_expression = "GSI1Pkey = :pk AND begins_with(GSI1Skey, :sk)";
         
+        let mut errors = Vec::new();
+
         let mut expression_attribute_values = std::collections::HashMap::new();
-        expression_attribute_values.insert(":pk".to_string(), AttributeValue::S("PRODUCT#".to_string() + &product_id.to_string()));
+        expression_attribute_values.insert(":pk".to_string(), AttributeValue::S("CART#PRODUCT#".to_string() + &product_id.to_string()));
         expression_attribute_values.insert(":sk".to_string(), AttributeValue::S("CART#USER#".to_string()));
 
-        let query_cart_items = self
-            .persistance_repository
-            .client
-            .query()
-            .table_name(self.persistance_repository.table_name.clone())
-            .index_name("GSI1".to_string())
-            .key_condition_expression(query_expression.to_string())
-            .set_expression_attribute_values(
-                Some(expression_attribute_values)
-            )
-            .send().await;
-        
-        match query_cart_items {
-            Ok(result) => {
-                let items = result.items.unwrap();
-                let mut cart_items = Vec::new();
-                for item in items {
-                    cart_items.push(CartItem::from_attr_map(item));
+        let mut pagination = true;
+
+        let mut exclusive_start_key: Option<HashMap<String, AttributeValue>> = None;
+
+        while pagination {
+
+            let query_cart_items = self
+                .persistance_repository
+                .client
+                .query()
+                .table_name(self.persistance_repository.table_name.clone())
+                .index_name("GSI1".to_string())
+                .key_condition_expression(query_expression.to_string())
+                .set_expression_attribute_values(
+                    Some(expression_attribute_values.clone())
+                )
+                .set_exclusive_start_key(exclusive_start_key.clone())
+                .send().await; // we're making the assumption here that a single cart does not excede 1MB of data
+            
+
+            let delete_result = match query_cart_items {
+                Ok(result) => {
+                    exclusive_start_key = result.last_evaluated_key;
+
+                    if exclusive_start_key.is_none() {
+                        pagination = false;
+                    }
+                    let items = result.items.unwrap();
+                    let mut cart_items = Vec::new();
+                    for item in items {
+                        cart_items.push(CartItem::from_attr_map(item));
+                    }
+                    
+                    let delete_requests: Vec<WriteRequest> = cart_items.iter().map(|item| {
+                        WriteRequest::builder()
+                            .delete_request(
+                                aws_sdk_dynamodb::types::DeleteRequest::builder()
+                                .key("Pkey".to_string(), AttributeValue::S("CART#USER#".to_string() + &item.user_id.to_string()))
+                                .key("Skey".to_string(), AttributeValue::S("CART#PRODUCT#".to_string() + &item.product_id.to_string()))
+                                .build()
+                            ).build()
+                    }).collect();
+
+                    let delete_chunk_iterator = delete_requests.chunks(25); // need to chunk due to item limit of 25
+
+                    for delete_chunk in delete_chunk_iterator {
+                        let result = self.persistance_repository.client.batch_write_item()
+                            .request_items(self.persistance_repository.table_name.clone(), delete_chunk.to_vec())
+                            .send().await;
+
+                        if result.is_err() {
+                            errors.push(HexagonalError {
+                                error: error::HexagonalErrorCode::AdaptorError,
+                                message: "Unable to remove product from carts".to_string(),
+                                trace: result.unwrap_err().to_string(),
+                            });
+                        }
+                    }
+
+                    Ok(())
+                },
+                Err(e) => {
+                    Err(HexagonalError {
+                        error: error::HexagonalErrorCode::AdaptorError,
+                        message: "Unable to get cart items".to_string(),
+                        trace: e.to_string(),
+                    })
                 }
-                
-                let delete_requests: Vec<WriteRequest> = cart_items.iter().map(|item| {
-                    WriteRequest::builder()
-                        .delete_request(
-                            aws_sdk_dynamodb::types::DeleteRequest::builder()
-                            .key("Pkey".to_string(), AttributeValue::S("CART#USER#".to_string() + &item.user_id.to_string()))
-                            .key("Skey".to_string(), AttributeValue::S("PRODUCT#".to_string() + &item.product_id.to_string()))
-                            .build()
-                        ).build()
-                }).collect();
+            };
 
-                let delete_chunk_iterator = delete_requests.chunks(25); // need to chunk due to item limit of 25
 
-                for delete_chunk in delete_chunk_iterator {
-                    self.persistance_repository.client.batch_write_item()
-                        .request_items(self.persistance_repository.table_name.clone(), delete_chunk.to_vec())
-                        .send().await;
-                }
 
-                Ok(())
-            },
-            Err(e) => {
-                Err(HexagonalError {
-                    error: error::HexagonalErrorCode::AdaptorError,
-                    message: "Unable to get cart items".to_string(),
-                    trace: e.to_string(),
-                })
+            if delete_result.is_err() {
+                errors.push(delete_result.unwrap_err())
             }
         }
+        if errors.len() > 0 {
+            return Err(errors);
+        }
+        return Ok(())
     }
-
-    async fn cart_global_update_product(&self, product_id: &String, product_name: &String) -> Result<(), HexagonalError>{
-        !unimplemented!()
-    }
-
 }

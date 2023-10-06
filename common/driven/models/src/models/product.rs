@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use aws_sdk_dynamodb::types::AttributeValue;
+use aws_sdk_dynamodb::types::{AttributeValue, KeysAndAttributes};
 use error::HexagonalError;
 use mockall::automock;
 use persistance_repository::DynamoDBSingleTableRepository;
@@ -143,6 +143,7 @@ impl MutableProduct {
 #[async_trait]
 pub trait ProductRepositoryPort {
     async fn product_get_by_id(&self, id: &String) -> Result<Option<Product>, HexagonalError>;
+    async fn product_get_by_ids(&self, id: &Vec<String>) -> Result<Vec<Product>, HexagonalError>;
     async fn product_create(&self, product: &Product) -> Result<Product, HexagonalError>;
     async fn product_update_by_id(
         &self,
@@ -168,6 +169,7 @@ impl<'a> ProductRepositoryAdaptor<'a> {
 
 #[async_trait]
 impl<'a> ProductRepositoryPort for ProductRepositoryAdaptor<'a> {
+
     async fn product_get_by_id(&self, id: &String) -> Result<Option<Product>, HexagonalError> {
         let result = self
             .persistance_repository
@@ -178,6 +180,48 @@ impl<'a> ProductRepositoryPort for ProductRepositoryAdaptor<'a> {
             Ok(result) => match result.item {
                 Some(item) => Ok(Some(Product::from_attr_map(item))),
                 None => Ok(None),
+            },
+            Err(e) => Err(HexagonalError {
+                error: error::HexagonalErrorCode::AdaptorError,
+                message: "Unable to get product".to_string(),
+                trace: e.to_string(),
+            }),
+        }
+    }
+
+    async fn product_get_by_ids(&self, id: &Vec<String>) -> Result<Vec<Product>, HexagonalError> {
+        
+        let get_item_key_vec = id
+            .iter()
+            .map(|id| {
+                let mut key = HashMap::new();
+                key.insert(
+                    "Pkey".to_string(),
+                    AttributeValue::S("PRODUCT#".to_string() + id),
+                );
+                key.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
+                key
+            })
+            .collect::<Vec<HashMap<String, AttributeValue>>>();
+        
+        let keys_and_attributes = KeysAndAttributes::builder()
+            .set_keys(Some(get_item_key_vec))
+            .build();
+
+        let mut request_items = HashMap::new();
+        request_items.insert(self.persistance_repository.table_name.clone(), keys_and_attributes);
+
+        let result = self
+            .persistance_repository
+            .client.batch_get_item()
+            .set_request_items(Some(request_items))
+            .send()
+            .await;
+
+        match result {
+            Ok(result) => match result.responses {
+                Some(item) => Ok(item.get(&self.persistance_repository.table_name).unwrap().iter().map(|item| Product::from_attr_map(item.clone())).collect()),
+                None => Ok(Vec::new()),
             },
             Err(e) => Err(HexagonalError {
                 error: error::HexagonalErrorCode::AdaptorError,
