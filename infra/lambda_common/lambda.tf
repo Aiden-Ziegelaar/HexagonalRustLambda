@@ -33,7 +33,7 @@ resource "aws_lambda_function" "lambda" {
 
   architectures = var.architectures
 
-  memory_size = 1024
+  memory_size = 1769
 
   environment {
     variables = merge(
