@@ -23,9 +23,7 @@ lazy_static! {
                 },
             },
             "required": [
-                "product_name",
-                "price_cents",
-                "description"
+                "product_ids"
             ],
             "additionalProperties": false
         });
