@@ -10,6 +10,10 @@ edition = "2021"
 name = "cart_add_item"
 path = "cart_add_item/http_adaptor.rs"
 
+[[bin]]
+name = "cart_get"
+path = "cart_get/http_adaptor.rs"
+
 [dependencies]
 http = { workspace = true }
 jsonschema = { workspace = true }

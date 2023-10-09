@@ -126,7 +126,7 @@ impl DynamoDbModel for CartItem {
 #[automock]
 #[async_trait]
 pub trait CartRepositoryPort {
-    async fn cart_get_by_user_id(&self, user_id: &String) -> Result<Option<Vec<CartItem>>, HexagonalError>;
+    async fn cart_get_by_user_id(&self, user_id: &String) -> Result<Vec<CartItem>, HexagonalError>;
     async fn cart_add_item(&self, item: &CartItem) -> Result<CartItem, HexagonalError>;
     async fn cart_remove_item(
         &self,
@@ -159,7 +159,7 @@ impl<'a> CartRepositoryAdaptor<'a> {
 
 #[async_trait]
 impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
-    async fn cart_get_by_user_id(&self, user_id: &String) -> Result<Option<Vec<CartItem>>, HexagonalError> {
+    async fn cart_get_by_user_id(&self, user_id: &String) -> Result<Vec<CartItem>, HexagonalError> {
         let query_expression = "Pkey = :pk AND begins_with(Skey, :sk)";
         
         let mut expression_attribute_values = std::collections::HashMap::new();
@@ -184,7 +184,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                 for item in items {
                     cart_items.push(CartItem::from_attr_map(item));
                 }
-                Ok(Some(cart_items))
+                Ok(cart_items)
             },
             Err(e) => {
                 Err(HexagonalError {
