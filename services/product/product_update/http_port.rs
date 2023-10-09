@@ -19,7 +19,7 @@ lazy_static! {
                     "type": "string"
                 },
                 "price_cents": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "description": {
                     "type": "string"

@@ -8,7 +8,8 @@ resource "aws_api_gateway_rest_api" "main_api" {
         }
         paths = merge(
             module.user_service.router_fragment,
-            module.product_service.router_fragment
+            module.product_service.router_fragment,
+            module.cart_service.router_fragment
         )
     })
 

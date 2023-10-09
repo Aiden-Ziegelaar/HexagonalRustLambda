@@ -5,7 +5,6 @@
 // 4. Update quantity of Product in Cart by user_id, product_id, quantity
 // 5. Delete Cart by user_id
 // 6. Remove product from all carts by product_id
-// 6. Update name of product in all carts by product_id
 
 // Model:
 // Pkey = CART#USER#<user_id>
@@ -25,21 +24,23 @@ use aws_sdk_dynamodb::types::{AttributeValue, WriteRequest};
 use error::HexagonalError;
 use mockall::automock;
 use persistance_repository::DynamoDBSingleTableRepository;
+use serde::{Serialize, Deserialize};
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct CartItem {
     pub product_id: String,
-    pub product_name: String,
     pub user_id: String,
     pub quantity: u32,
+    #[serde(default = "default_time")]
     pub created_at: String,
+    #[serde(default = "default_time")]
     pub updated_at: String,
 }
 
 impl CartItem {
-    pub fn new(product_id: String, product_name: String, user_id: String, quantity: u32) -> Self {
+    pub fn new(product_id: String, user_id: String, quantity: u32) -> Self {
         Self {
             product_id,
-            product_name,
             user_id,
             quantity,
             created_at: default_time(),
@@ -58,7 +59,6 @@ impl DynamoDbModel for CartItem {
                 .unwrap()
                 .to_string(),
             user_id: attr_map.get("user_id").unwrap().as_s().unwrap().to_string(),
-            product_name: attr_map.get("product_name").unwrap().as_s().unwrap().to_string(),
             quantity: attr_map
                 .get("quantity")
                 .unwrap()
@@ -125,7 +125,7 @@ impl DynamoDbModel for CartItem {
 
 #[automock]
 #[async_trait]
-trait CartRepositoryPort {
+pub trait CartRepositoryPort {
     async fn cart_get_by_user_id(&self, user_id: &String) -> Result<Option<Vec<CartItem>>, HexagonalError>;
     async fn cart_add_item(&self, item: &CartItem) -> Result<CartItem, HexagonalError>;
     async fn cart_remove_item(
@@ -139,7 +139,7 @@ trait CartRepositoryPort {
         product_id: &String,
         quantity: u32,
     ) -> Result<CartItem, HexagonalError>;
-    async fn cart_clear(&self, user_id: &String) -> Result<(), HexagonalError>;
+    async fn cart_clear(&self, user_id: &String) -> Result<Vec<CartItem>, HexagonalError>;
     async fn cart_global_remove_product(&self, product_id: &String) -> Result<(), Vec<HexagonalError>>;
 }
 
@@ -203,7 +203,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
             .await;
 
         match result {
-            Ok(value) => Ok(CartItem::from_attr_map(value.attributes.unwrap())),
+            Ok(_) => Ok(item.clone()),
             Err(e) => Err(HexagonalError {
                 error: error::HexagonalErrorCode::AdaptorError,
                 message: "Unable to add item to cart".to_string(),
@@ -263,7 +263,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
         }
     }
 
-    async fn cart_clear(&self, user_id: &String) -> Result<(), HexagonalError> {
+    async fn cart_clear(&self, user_id: &String) -> Result<Vec<CartItem>, HexagonalError> {
         let query_expression = "Pkey = :pk AND begins_with(Skey, :sk)";
         
         let mut expression_attribute_values = std::collections::HashMap::new();
@@ -314,7 +314,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                     }
                 }
 
-                Ok(())
+                Ok(cart_items)
             },
             Err(e) => {
                 Err(HexagonalError {

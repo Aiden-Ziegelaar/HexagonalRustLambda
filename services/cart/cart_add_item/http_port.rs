@@ -1,4 +1,4 @@
-use crate::domain::product_create_core;
+use crate::domain::cart_add_item_core;
 
 use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
@@ -6,28 +6,29 @@ use http_apigw_adaptor::HttpPortRequest;
 use http_port_tools::http_payload_decoder;
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;
-use models::models::product::{Product, ProductRepositoryPort};
+use models::models::cart::{CartItem, CartRepositoryPort};
 use serde_json::json;
 
 lazy_static! {
-    static ref PRODUCT_SCHEMA: JSONSchema = {
+    static ref CART_ITEM_SCHEMA: JSONSchema = {
         let schema = json!({
             "type": "object",
             "properties": {
-                "product_name": {
+                "product_id": {
                     "type": "string"
                 },
-                "price_cents": {
-                    "type": "integer"
-                },
-                "description": {
+                "user_id": {
                     "type": "string"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "minimum": 1
                 }
             },
             "required": [
-                "product_name",
-                "price_cents",
-                "description"
+                "product_id",
+                "user_id",
+                "quantity"
             ],
             "additionalProperties": false
         });
@@ -38,14 +39,14 @@ lazy_static! {
     };
 }
 
-pub async fn product_create_post_http_port<T1: ProductRepositoryPort, T2: EventingPort>(
-    product_repository_port: &T1,
+pub async fn cart_create_post_http_port<T1: CartRepositoryPort, T2: EventingPort>(
+    cart_repository_port: &T1,
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
     let payload = http_request.payload;
-    let product = http_payload_decoder!(Product, PRODUCT_SCHEMA, payload);
-    match product_create_core(product_repository_port, eventing_port, product).await {
+    let cart = http_payload_decoder!(CartItem, CART_ITEM_SCHEMA, payload);
+    match cart_add_item_core(cart_repository_port, eventing_port, cart).await {
         Ok(result) => {
             let resp = Response::builder()
                 .status(StatusCode::CREATED)
