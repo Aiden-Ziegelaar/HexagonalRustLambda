@@ -28,6 +28,8 @@ describe('Update Product in Cart', function () {
             }
         })
 
+        cart_item.user_id = cart_item.user_id.toLowerCase();
+
         //assert
         assert.equal(res.status, 201)
         expect(res.data).to.include(cart_item)

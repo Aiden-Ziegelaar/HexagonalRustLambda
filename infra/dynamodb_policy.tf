@@ -43,6 +43,7 @@ data "aws_iam_policy_document" "dynamodb_single_table_access_policy_document" {
 
         resources = [
             aws_dynamodb_table.dynamodb_single_table.arn,
+            "${aws_dynamodb_table.dynamodb_single_table.arn}/index/*"
         ]
     }
 }

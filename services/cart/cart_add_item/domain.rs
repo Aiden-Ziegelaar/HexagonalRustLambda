@@ -4,8 +4,9 @@ use models::models::cart::{CartItem, CartRepositoryPort};
 pub async fn cart_add_item_core<T1: CartRepositoryPort, T2: EventingPort>(
     cart_repository_port: &T1,
     eventing_port: &T2,
-    cart_item: CartItem,
+    mut cart_item: CartItem,
 ) -> Result<CartItem, error::HexagonalError> {
+    cart_item.user_id = cart_item.user_id.to_ascii_lowercase();
     let cart_item_result = cart_repository_port.cart_add_item(&cart_item).await;
 
     if cart_item_result.is_ok() {

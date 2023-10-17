@@ -32,6 +32,8 @@ describe('Remove Product from Cart', function () {
             }
         })
 
+        cart_item.user_id = cart_item.user_id.toLowerCase();
+
         //assert
         assert.equal(res_add.status, 201)
         expect(res_add.data).to.include(cart_item)

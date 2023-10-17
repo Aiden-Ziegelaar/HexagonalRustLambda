@@ -25,6 +25,8 @@ describe('Get Cart', function () {
             }
         })
 
+        cart_item.user_id = cart_item.user_id.toLowerCase();
+
         //assert
         assert.equal(res.status, 200)
         expect(res.data[0]).to.include(cart_item)

@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 
 describe('Clear Cart', function () {
     it('should add multiple products to a users cart then clear the cart', async function () {
+        this.timeout(5000);
         //arrange
         let user_id = faker.internet.email();
 

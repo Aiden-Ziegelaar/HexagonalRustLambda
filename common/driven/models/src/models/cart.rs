@@ -16,7 +16,7 @@
 // 1. A single cart does not exceed 1MB of data
 
 
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error};
 
 use crate::{default_time, DynamoDbModel};
 use async_trait::async_trait;
@@ -327,6 +327,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
     }
 
     async fn cart_global_remove_product(&self, product_id: &String) -> Result<(), Vec<HexagonalError>> {
+        println!("Removing product {} from all carts", product_id);
         let query_expression = "GSI1Pkey = :pk AND begins_with(GSI1Skey, :sk)";
         
         let mut errors = Vec::new();
@@ -354,6 +355,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                 .set_exclusive_start_key(exclusive_start_key.clone())
                 .send().await; // we're making the assumption here that a single cart does not excede 1MB of data
             
+            println!("Query result: {:?}", query_cart_items);
 
             let delete_result = match query_cart_items {
                 Ok(result) => {
@@ -398,10 +400,11 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                 },
                 Err(e) => {
                     pagination = false; // stop pagination if failure
+                    println!("Error: {:?}", e.source());
                     Err(HexagonalError {
                         error: error::HexagonalErrorCode::AdaptorError,
                         message: "Unable to get cart items".to_string(),
-                        trace: e.to_string(),
+                        trace: "".to_string(),
                     })
                 }
             };
