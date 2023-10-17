@@ -40,6 +40,7 @@ impl EventingPort for EventingRepository {
         let put_events_request = aws_sdk_eventbridge::types::PutEventsRequestEntry::builder()
             .set_event_bus_name(Some(self.bus_name.clone()))
             .set_detail_type(Some(event.get_event_type().clone()))
+            .set_source(Some("RUSTHEXAGONALSTOREFRONT".to_string()))
             .set_detail(Some(event.serialise()))
             .build();
 
@@ -53,6 +54,8 @@ impl EventingPort for EventingRepository {
                 error: error::HexagonalErrorCode::AdaptorError,
                 trace: err.to_string(),
             })
-            .map(|_| ())
+            .map(|value| (
+                println!("{:?}", value)
+            ))
     }
 }

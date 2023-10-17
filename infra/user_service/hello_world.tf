@@ -1,5 +1,5 @@
 module "hello_world_lambda" {
-    source = "../lambda_common"
+    source = "../lambda_http_common"
     app_name = var.app_name
     lambda_name = "UserHelloWorld"
     additional_policy_arns = []

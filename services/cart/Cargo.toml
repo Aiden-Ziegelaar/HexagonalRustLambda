@@ -14,6 +14,23 @@ path = "cart_add_item/http_adaptor.rs"
 name = "cart_get"
 path = "cart_get/http_adaptor.rs"
 
+[[bin]]
+name = "cart_clear_http"
+path = "cart_clear/http_adaptor.rs"
+
+[[bin]]
+name = "cart_clear_user_delete_event"
+path = "cart_clear/eventbridge_adaptor.rs"
+
+[[bin]]
+name = "cart_remove_item"
+path = "cart_remove_item/http_adaptor.rs"
+
+[[bin]]
+name = "cart_update_item"
+path = "cart_update_item/http_adaptor.rs"
+
+
 [dependencies]
 http = { workspace = true }
 jsonschema = { workspace = true }
@@ -37,3 +54,4 @@ aws-config = { workspace = true }
 error = { workspace = true }
 mockall = { workspace = true }
 uuid = { workspace = true }
+aws_lambda_events = { workspace = true }

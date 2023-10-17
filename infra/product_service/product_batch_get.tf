@@ -1,5 +1,5 @@
 module "product_batch_get_lambda" {
-    source = "../lambda_common"
+    source = "../lambda_http_common"
     app_name = var.app_name
     lambda_name = "ProductBatchGetLambda"
     additional_policy_arns = [var.dynamo_policy_arn, var.event_bus_policy_arn]

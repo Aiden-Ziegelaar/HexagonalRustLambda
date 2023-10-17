@@ -5,13 +5,13 @@ use crate::events::event_emmiter::SerialisableEvent;
 const EVENT_TYPE: &str = "cart_items_removed";
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct EventCartItemRemovedV1 {
+pub struct EventCartItemsRemovedV1 {
     pub version: u32,
     pub event_type: String,
     pub cart_items: Vec<models::models::cart::CartItem>
 }
 
-impl EventCartItemRemovedV1 {
+impl EventCartItemsRemovedV1 {
     pub fn new(cart_items: Vec<models::models::cart::CartItem>) -> Self {
         Self {
             version: 1,
@@ -21,7 +21,7 @@ impl EventCartItemRemovedV1 {
     }
 }
 
-impl SerialisableEvent for EventCartItemRemovedV1 {
+impl SerialisableEvent for EventCartItemsRemovedV1 {
     fn get_event_type(&self) -> &String {
         &self.event_type
     }

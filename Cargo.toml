@@ -9,7 +9,6 @@ members = [
   "common/driven/*",
   "common/error"
 ]
-resolver = "2"
 
 [workspace.dependencies]
 # Common Lambda HTTP Dependencies
