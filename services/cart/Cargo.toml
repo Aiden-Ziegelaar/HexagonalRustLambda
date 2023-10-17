@@ -30,6 +30,9 @@ path = "cart_remove_item/http_adaptor.rs"
 name = "cart_update_item"
 path = "cart_update_item/http_adaptor.rs"
 
+[[bin]]
+name = "cart_product_global_delete_event"
+path = "cart_product_global_delete/eventbridge_adaptor.rs"
 
 [dependencies]
 http = { workspace = true }

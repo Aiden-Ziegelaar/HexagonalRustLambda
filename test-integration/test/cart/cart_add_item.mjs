@@ -15,7 +15,7 @@ describe('Add Product to Cart', function () {
         }
 
         //act
-        let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/cart`, cart_item).catch(err => {
+        let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, cart_item).catch(err => {
             console.log(err)
         })
 

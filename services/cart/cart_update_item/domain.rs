@@ -27,7 +27,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_cart_add_item_core() {
+    async fn test_cart_update_item_core() {
         // Arrange
         let mut cart_repository_port = models::models::cart::MockCartRepositoryPort::new();
         let mut eventing_port = eventing::MockEventingPort::new();
@@ -43,8 +43,8 @@ mod tests {
         let result_cart_item = cart_item.clone();
 
         cart_repository_port
-            .expect_cart_add_item()
-            .returning(move |_| Ok(result_cart_item.clone()));
+            .expect_cart_update_item()
+            .returning(move |_, _, _| Ok(result_cart_item.clone()));
 
         eventing_port
             .expect_emit::<EventCartItemAddedV1>()
@@ -75,8 +75,8 @@ mod tests {
         let result_cart_item = cart_item.clone();
 
         cart_repository_port
-            .expect_cart_add_item()
-            .returning(move |_| Ok(result_cart_item.clone()));
+            .expect_cart_update_item()
+            .returning(move |_, _, _| Ok(result_cart_item.clone()));
 
         eventing_port
             .expect_emit::<EventCartItemAddedV1>()
@@ -109,8 +109,8 @@ mod tests {
         };
 
         cart_repository_port
-            .expect_cart_add_item()
-            .returning(move |_| Err(error::HexagonalError{
+            .expect_cart_update_item()
+            .returning(move |_, _, _| Err(error::HexagonalError{
                 error: error::HexagonalErrorCode::AdaptorError,
                 message: "test".to_string(),
                 trace: "".to_string(),

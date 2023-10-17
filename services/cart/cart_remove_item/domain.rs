@@ -1,12 +1,13 @@
 use eventing::{events::cart::cart_items_removed::EventCartItemsRemovedV1, EventingPort};
-use models::models::cart::{CartRepositoryPort, CartItemDelete, CartItem};
+use models::models::cart::{CartRepositoryPort, CartItem};
 
 pub async fn cart_remove_item_core<T1: CartRepositoryPort, T2: EventingPort>(
     cart_repository_port: &T1,
     eventing_port: &T2,
-    cart_item: CartItemDelete,
+    user_id: String,
+    product_id: String
 ) -> Result<CartItem, error::HexagonalError> {
-    let cart_item_result = cart_repository_port.cart_remove_item(&cart_item.user_id, &cart_item.product_id).await;
+    let cart_item_result = cart_repository_port.cart_remove_item(&user_id, &product_id).await;
 
     if cart_item_result.is_ok() {
         let event_result = eventing_port
@@ -31,14 +32,13 @@ mod tests {
         // Arrange
         let mut cart_repository_port = models::models::cart::MockCartRepositoryPort::new();
 
-        let cart_item_delete = CartItemDelete {
-            product_id: uuid::Uuid::new_v4().to_string(),
-            user_id: uuid::Uuid::new_v4().to_string(),
-        };
+        let product_id = uuid::Uuid::new_v4().to_string();
+        let user_id = uuid::Uuid::new_v4().to_string();
+
 
         let result_cart_item = CartItem {
-            product_id: cart_item_delete.product_id.clone(),
-            user_id: cart_item_delete.user_id.clone(),
+            product_id: product_id.clone(),
+            user_id: user_id.clone(),
             quantity: 1,
             created_at: default_time(),
             updated_at: default_time(),
@@ -54,7 +54,7 @@ mod tests {
             .returning(move |_| Ok(()));
 
         // Act
-        let result = cart_remove_item_core(&cart_repository_port, &eventing_port, cart_item_delete).await;
+        let result = cart_remove_item_core(&cart_repository_port, &eventing_port, user_id, product_id).await;
 
         // Assert
         assert!(result.is_ok());
@@ -64,11 +64,6 @@ mod tests {
     async fn test_cart_remove_item_core_cart_repository_error() {
         // Arrange
         let mut cart_repository_port = models::models::cart::MockCartRepositoryPort::new();
-
-        let cart_item_delete = CartItemDelete {
-            product_id: uuid::Uuid::new_v4().to_string(),
-            user_id: uuid::Uuid::new_v4().to_string(),
-        };
 
         cart_repository_port
             .expect_cart_remove_item()
@@ -84,7 +79,7 @@ mod tests {
             .returning(move |_| Ok(()));
 
         // Act
-        let result = cart_remove_item_core(&cart_repository_port, &eventing_port, cart_item_delete).await;
+        let result = cart_remove_item_core(&cart_repository_port, &eventing_port, uuid::Uuid::new_v4().to_string(), uuid::Uuid::new_v4().to_string()).await;
 
         // Assert
         assert!(result.is_err());
@@ -95,14 +90,9 @@ mod tests {
         // Arrange
         let mut cart_repository_port = models::models::cart::MockCartRepositoryPort::new();
 
-        let cart_item_delete = CartItemDelete {
+        let result_cart_item = CartItem {
             product_id: uuid::Uuid::new_v4().to_string(),
             user_id: uuid::Uuid::new_v4().to_string(),
-        };
-
-        let result_cart_item = CartItem {
-            product_id: cart_item_delete.product_id.clone(),
-            user_id: cart_item_delete.user_id.clone(),
             quantity: 1,
             created_at: default_time(),
             updated_at: default_time(),
@@ -122,7 +112,7 @@ mod tests {
             }));
 
         // Act
-        let result = cart_remove_item_core(&cart_repository_port, &eventing_port, cart_item_delete).await;
+        let result = cart_remove_item_core(&cart_repository_port, &eventing_port, uuid::Uuid::new_v4().to_string(), uuid::Uuid::new_v4().to_string()).await;
 
         // Assert
         assert!(result.is_err());

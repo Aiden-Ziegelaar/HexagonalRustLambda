@@ -15,7 +15,7 @@ describe('Get Cart', function () {
         }
 
         //act
-        await axios.post(`${process.env.INF_API_ENDPOINT}main/cart`, cart_item).catch(err => {
+        await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, cart_item).catch(err => {
             console.log(err)
         })
 
@@ -47,7 +47,7 @@ describe('Get Cart', function () {
 
         //act
         let res_post_promises = cart_items.map(
-            cart_item => axios.post(`${process.env.INF_API_ENDPOINT}main/cart`, cart_item)
+            cart_item => axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, cart_item)
         )
         await Promise.all(res_post_promises);
 

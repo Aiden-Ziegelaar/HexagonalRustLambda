@@ -1,13 +1,6 @@
 locals {
     router_fragment = {
         "/cart" = {
-            "post" = {
-                "x-amazon-apigateway-integration" = {
-                    "httpMethod" = "POST"
-                    "type" = "aws_proxy"
-                    "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.cart_add_item_lambda.lambda_arn}/invocations"
-                }
-            }
             "get" = {
                 "x-amazon-apigateway-integration" = {
                     "httpMethod" = "POST"
@@ -20,6 +13,29 @@ locals {
                     "httpMethod" = "POST"
                     "type" = "aws_proxy"
                     "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.cart_clear_http_lambda.lambda_arn}/invocations"
+                }
+            }
+        }
+        "/cart/item" = {
+            "post" = {
+                "x-amazon-apigateway-integration" = {
+                    "httpMethod" = "POST"
+                    "type" = "aws_proxy"
+                    "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.cart_add_item_lambda.lambda_arn}/invocations"
+                }
+            }
+            "delete" = {
+                "x-amazon-apigateway-integration" = {
+                    "httpMethod" = "POST"
+                    "type" = "aws_proxy"
+                    "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.cart_remove_item_lambda.lambda_arn}/invocations"
+                }
+            }
+            "patch" = {
+                "x-amazon-apigateway-integration" = {
+                    "httpMethod" = "POST"
+                    "type" = "aws_proxy"
+                    "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.cart_update_item_lambda.lambda_arn}/invocations"
                 }
             }
         }

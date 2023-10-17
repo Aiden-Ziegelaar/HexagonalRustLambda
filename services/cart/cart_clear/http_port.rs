@@ -31,7 +31,7 @@ pub async fn cart_create_post_http_port<T1: CartRepositoryPort, T2: EventingPort
     match cart_clear_delete_core(cart_repository_port, eventing_port, email.to_string()).await {
         Ok(result) => {
             let resp = Response::builder()
-                .status(StatusCode::CREATED)
+                .status(StatusCode::OK)
                 .header("content-type", "application/json")
                 .body(serde_json::to_string(&result).unwrap());
             Ok(resp.unwrap())

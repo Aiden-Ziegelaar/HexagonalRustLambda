@@ -49,7 +49,7 @@ pub async fn cart_update_item_patch_http_port<T1: CartRepositoryPort, T2: Eventi
     match cart_update_item_core(cart_repository_port, eventing_port, cart).await {
         Ok(result) => {
             let resp = Response::builder()
-                .status(StatusCode::CREATED)
+                .status(StatusCode::OK)
                 .header("content-type", "application/json")
                 .body(serde_json::to_string(&result).unwrap());
             Ok(resp.unwrap())

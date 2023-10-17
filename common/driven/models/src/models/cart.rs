@@ -49,21 +49,6 @@ impl CartItem {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct CartItemDelete {
-    pub user_id: String,
-    pub product_id: String,
-}
-
-impl CartItemDelete {
-    pub fn new(product_id: String, user_id: String) -> Self {
-        Self {
-            product_id,
-            user_id,
-        }
-    }
-}
-
 impl DynamoDbModel for CartItem {
     fn from_attr_map(attr_map: std::collections::HashMap<String, AttributeValue>) -> Self {
         CartItem {
@@ -412,6 +397,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                     Ok(())
                 },
                 Err(e) => {
+                    pagination = false; // stop pagination if failure
                     Err(HexagonalError {
                         error: error::HexagonalErrorCode::AdaptorError,
                         message: "Unable to get cart items".to_string(),
