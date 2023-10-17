@@ -3,7 +3,7 @@ import { assert, expect } from 'chai';
 import { faker } from '@faker-js/faker';
 
 let completion_NFR = 5000;
-let sleep = 1000;
+let sleep = 500;
 let iterations = completion_NFR / sleep;
 
 describe('Clear Cart on User Deletion', function () {
