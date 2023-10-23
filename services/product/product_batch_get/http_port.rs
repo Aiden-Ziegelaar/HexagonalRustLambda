@@ -1,43 +1,11 @@
 use crate::domain::product_get_batch_core;
 
-use lazy_static::lazy_static;
-use jsonschema::{Draft, JSONSchema};
+use error::HexagonalError;
 use http::{Error, Response, StatusCode};
 use http_apigw_adaptor::HttpPortRequest;
 use models::models::product::ProductRepositoryPort;
-use serde::{Serialize, Deserialize};
-use serde_json::json;
-use http_port_tools::http_payload_decoder;
+use serde::Serialize;
 use models::models::product::Product;
-
-lazy_static! {
-    static ref PRODUCT_BATCH_GET_SCHEMA: JSONSchema = {
-        let schema = json!({
-            "type": "object",
-            "properties": {
-                "product_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-            },
-            "required": [
-                "product_ids"
-            ],
-            "additionalProperties": false
-        });
-        JSONSchema::options()
-            .with_draft(Draft::Draft7)
-            .compile(&schema)
-            .unwrap()
-    };
-}
-
-#[derive(Deserialize, Debug)]
-struct ProductBatchGetRequest {
-    product_ids: Vec<String>,
-}
 
 #[derive(Serialize, Debug)]
 struct ProductBatchGetResponse {
@@ -48,9 +16,19 @@ pub async fn product_get_batch_post_http_port<T1: ProductRepositoryPort>(
     product_repository_port: &T1,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let payload = http_request.payload;
-    let product_batch_get_request: ProductBatchGetRequest = http_payload_decoder!(ProductBatchGetRequest, PRODUCT_BATCH_GET_SCHEMA, payload);
-    match product_get_batch_core(product_repository_port, &product_batch_get_request.product_ids).await {
+    let ids = match http_request.query_string_parameters.all("id") {
+        Some(value) => value,
+        None => {
+            let err = HexagonalError {
+                error: error::HexagonalErrorCode::BadInput,
+                message: "at least one id is required".to_string(),
+                trace: "".to_string(),
+            };
+            return Ok(err.compile_to_http_response());
+        }
+    };
+    let string_ids = ids.iter().map(|id| id.to_string()).collect();
+    match product_get_batch_core(product_repository_port, &string_ids).await {
         Ok(products) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

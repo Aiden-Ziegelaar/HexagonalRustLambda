@@ -24,11 +24,8 @@ describe('Update Product', function () {
         //act
         let post_res = await axios.post(`${process.env.INF_API_ENDPOINT}main/product`, product)
 
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/product`, 
-            product_patch,
-            {
-                params: { id: post_res.data.id }
-            }
+        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/product/${post_res.data.id}`, 
+            product_patch
         )
 
         //assert
@@ -55,10 +52,9 @@ describe('Update Product', function () {
         //act
         let post_res = await axios.post(`${process.env.INF_API_ENDPOINT}main/product`, product)
 
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/product`, 
+        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/product/${post_res.data.id}}`, 
             product_patch,
             {
-                params: { id: post_res.data.id },
                 validateStatus: () => true
             }
         )
@@ -80,12 +76,9 @@ describe('Update Product', function () {
         }
         
         //act
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/product`, 
+        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/product/${uuid}`, 
             product_patch,
             {
-                params: {
-                    id: uuid
-                },
                 validateStatus: () => true
             }
         )

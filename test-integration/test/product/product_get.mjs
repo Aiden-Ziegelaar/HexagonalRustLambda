@@ -16,13 +16,7 @@ describe('Get Product', function () {
         //act
         let res_post = await axios.post(`${process.env.INF_API_ENDPOINT}main/product`, product)
 
-        let res_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/product`,
-            {
-                params: {
-                    id: res_post.data.id
-                }
-            }
-        )
+        let res_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/product/${res_post.data.id}`)
 
         //assert
         assert.equal(res_get.status, 200)
@@ -34,11 +28,8 @@ describe('Get Product', function () {
         let id = faker.string.uuid()
 
         //act
-        let res_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/product`,
+        let res_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/product/${id}`,
             {
-                params: {
-                    id
-                },
                 validateStatus: () => true
             }
         )

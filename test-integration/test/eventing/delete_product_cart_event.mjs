@@ -7,7 +7,7 @@ let sleep = 500;
 let iterations = completion_NFR / sleep;
 
 describe('Remove Product from Cart on Product Deletion', function () {
-    it('should add multiple products to a users cart then clear the cart when the user is deleted', async function () {
+    it('should add a product to multiple users cart then clear the cart when the product is deleted', async function () {
         //arrange
         this.timeout(completion_NFR);
         let user_id_1 = faker.internet.email();
@@ -37,11 +37,7 @@ describe('Remove Product from Cart on Product Deletion', function () {
             })
         ])
 
-        let res_product_delete = await axios.delete(`${process.env.INF_API_ENDPOINT}main/product`, {
-            params: {
-                id: res_product_create.data.id
-            }
-        })
+        let res_product_delete = await axios.delete(`${process.env.INF_API_ENDPOINT}main/product/${res_product_create.data.id}`)
 
         let cart_items_len = 2;
         let calls = 0;

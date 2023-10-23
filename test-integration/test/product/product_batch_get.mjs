@@ -23,9 +23,15 @@ describe('Get Product Batch', function () {
 
         let res_post = await Promise.all(res_post_promises)
 
-        let res_batch_get = await axios.post(`${process.env.INF_API_ENDPOINT}main/product/batch_get`,
+        let res_batch_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/product`,
             {
-                product_ids: res_post.map(res => res.data.id)
+                params: {
+                    id: res_post.map(res => res.data.id)
+                },
+                paramsSerializer:{
+                    arrayFormat: 'repeat',
+                    indexes: null
+                }
             }
         )
 
@@ -54,9 +60,15 @@ describe('Get Product Batch', function () {
 
         let res_post = await Promise.all(res_post_promises)
 
-        let res_batch_get = await axios.post(`${process.env.INF_API_ENDPOINT}main/product/batch_get`,
+        let res_batch_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/product`,
             {
-                product_ids: res_post.map(res => res.data.id).concat(faker.string.uuid(), faker.string.uuid())
+                params: {
+                    id: res_post.map(res => res.data.id).concat(faker.string.uuid(), faker.string.uuid())
+                },
+                paramsSerializer:{
+                    arrayFormat: 'repeat',
+                    indexes: null
+                }
             }
         )
 
@@ -70,10 +82,16 @@ describe('Get Product Batch', function () {
         let products = []
 
         //act
-        let res_batch_get = await axios.post(`${process.env.INF_API_ENDPOINT}main/product/batch_get`,
-            {
-                product_ids: [faker.string.uuid(), faker.string.uuid()]
+        let res_batch_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/product`,
+        {
+            params: {
+                id: [faker.string.uuid(), faker.string.uuid()]
+            },
+            paramsSerializer:{
+                arrayFormat: 'repeat',
+                indexes: null
             }
+        }
         )
 
         //assert

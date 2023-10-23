@@ -40,7 +40,7 @@ pub async fn product_update_put_http_port<T1: ProductRepositoryPort, T2: Eventin
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let id = match http_request.query_string_parameters.first("id") {
+    let id = match http_request.path_parameters.first("id") {
         Some(value) => value,
         None => {
             let err = HexagonalError {
