@@ -2,28 +2,28 @@ use serde::{Deserialize, Serialize};
 
 use crate::events::event_emmiter::SerialisableEvent;
 
-const EVENT_TYPE: &str = "user_updated";
+const EVENT_TYPE: &str = "user_email_updated";
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct EventUsernameUpdatedV1 {
+pub struct EventEmailUpdatedV1 {
     pub version: u32,
     pub event_type: String,
-    pub email: String,
-    pub new_username: String,
+    pub new_email: String,
+    pub username: String,
 }
 
-impl EventUsernameUpdatedV1 {
-    pub fn new(email: String, new_username: String) -> Self {
+impl EventEmailUpdatedV1 {
+    pub fn new(username: String, new_email: String) -> Self {
         Self {
             version: 1,
             event_type: EVENT_TYPE.to_string(),
-            email,
-            new_username,
+            username,
+            new_email,
         }
     }
 }
 
-impl SerialisableEvent for EventUsernameUpdatedV1 {
+impl SerialisableEvent for EventEmailUpdatedV1 {
     fn get_event_type(&self) -> &String {
         &self.event_type
     }

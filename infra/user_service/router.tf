@@ -1,13 +1,6 @@
 locals {
     router_fragment = {
         "/user" = {
-            "get" = {
-                "x-amazon-apigateway-integration" = {
-                    "httpMethod" = "POST"
-                    "type" = "aws_proxy"
-                    "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.user_get_lambda.lambda_arn}/invocations"
-                }
-            }
             "post" = {
                 "x-amazon-apigateway-integration" = {
                     "httpMethod" = "POST"
@@ -15,6 +8,16 @@ locals {
                     "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.user_create_lambda.lambda_arn}/invocations"
                 }
             }
+        }
+        "/user/{username}" = {
+            "get" = {
+                "x-amazon-apigateway-integration" = {
+                    "httpMethod" = "POST"
+                    "type" = "aws_proxy"
+                    "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.user_get_lambda.lambda_arn}/invocations"
+                }
+            }
+
             "put" = {
                 "x-amazon-apigateway-integration" = {
                     "httpMethod" = "POST"
@@ -30,7 +33,7 @@ locals {
                 }
             }
         }
-        "/user/hello_world" = {
+        "/hello_world" = {
             "get" = {
                 "x-amazon-apigateway-integration" = {
                     "httpMethod" = "POST"
@@ -39,12 +42,12 @@ locals {
                 }
             }
         }
-        "/user/username" = {
+        "/user/{username}/email" = {
             "put" = {
                 "x-amazon-apigateway-integration" = {
                     "httpMethod" = "POST"
                     "type" = "aws_proxy"
-                    "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.user_username_update_lambda.lambda_arn}/invocations"
+                    "uri" = "arn:aws:apigateway:ap-southeast-2:lambda:path/2015-03-31/functions/${module.user_email_update_lambda.lambda_arn}/invocations"
                 }
             }
         }

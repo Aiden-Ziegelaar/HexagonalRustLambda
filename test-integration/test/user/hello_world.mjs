@@ -6,7 +6,7 @@ describe('Hello_World', function () {
         //arrange
 
         //act
-        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user/hello_world`)
+        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/hello_world`)
         //assert
         assert.equal(res.data, 'Hello, world!')
     })
@@ -15,7 +15,7 @@ describe('Hello_World', function () {
         //arrange
 
         //act
-        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user/hello_world`,
+        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/hello_world`,
             { params: { who: 'test' } }
         )
 

@@ -6,6 +6,10 @@ description = "Service to add, update, delete and get users"
 documentation.workspace = true
 edition = "2021"
 
+[lib]
+name = "lib_user_regexes"
+path = "lib_user_regexes/lib.rs"
+
 [[bin]]
 name = "user_hello_world"
 path = "hello_world/http_adaptor.rs"
@@ -27,8 +31,8 @@ name = "user_get"
 path = "user_get/http_adaptor.rs"
 
 [[bin]]
-name = "user_username_update"
-path = "user_username_update/http_adaptor.rs"
+name = "user_email_update"
+path = "user_email_update/http_adaptor.rs"
 
 [dependencies]
 http = { workspace = true }

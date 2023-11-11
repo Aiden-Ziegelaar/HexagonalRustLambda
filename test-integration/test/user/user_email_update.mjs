@@ -2,8 +2,8 @@ import axios from 'axios';
 import { assert, expect } from 'chai';
 import { faker } from '@faker-js/faker';
 
-describe('Update User Username', function () {
-    it('should update a username', async function () {
+describe('Update User Email', function () {
+    it('should update an email', async function () {
         //arrange
         let user = {
             first: faker.person.firstName(),
@@ -12,28 +12,25 @@ describe('Update User Username', function () {
             username: faker.internet.userName(),
         }
 
-        let username_patch = {
-            username: faker.internet.userName(),
+        let email_patch = {
+            email: faker.internet.email().toLowerCase(),
         }
 
         let patched_user = {
             ...user,
-            username: username_patch.username,
+            email: email_patch.email,
         }
 
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        let put_res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/username`, 
-            username_patch,
-            {
-                params: { email: user.email }
-            }
-        )
+        let put_res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/${user.username}/email`, 
+            email_patch
+        ).catch(err => {
+            console.log(err)
+        })
 
-        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user`,
-            { params: { email: user.email } }
-        )
+        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user/${user.username}`)
 
         //assert
         assert.equal(put_res.status, 200)
@@ -41,7 +38,7 @@ describe('Update User Username', function () {
         expect(res.data).to.include(patched_user)
     })
 
-    it('should allow creation of a user with a username that was previously taken after update', async function () {
+    it('should allow creation of a user with an email that was previously taken after update', async function () {
         //arrange
         let user = {
             first: faker.person.firstName(),
@@ -53,22 +50,19 @@ describe('Update User Username', function () {
         let user_after_update = {
             first: faker.person.firstName(),
             last: faker.person.lastName(),
-            email: faker.internet.email().toLowerCase(),
-            username: user.username,
+            email: user.email,
+            username: faker.internet.userName(),
         }
 
-        let username_patch = {
-            username: faker.internet.userName(),
+        let email_patch = {
+            email: faker.internet.email().toLowerCase(),
         }
 
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        let put_res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/username`, 
-            username_patch,
-            {
-                params: { email: user.email }
-            }
+        let put_res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/${user.username}/email`, 
+            email_patch,
         )
 
         let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user_after_update)
@@ -79,7 +73,7 @@ describe('Update User Username', function () {
         assert.equal(res.status, 201)
     })
 
-    it('should not allow creation of a user with a username that was updated to', async function () {
+    it('should not allow creation of a user with an email that was updated to', async function () {
         //arrange
         let user = {
             first: faker.person.firstName(),
@@ -88,25 +82,22 @@ describe('Update User Username', function () {
             username: faker.internet.userName(),
         }
 
-        let username_patch = {
-            username: faker.internet.userName(),
+        let email_patch = {
+            email: faker.internet.email().toLowerCase(),
         }
 
         let user_after_update = {
             first: faker.person.firstName(),
             last: faker.person.lastName(),
-            email: faker.internet.email().toLowerCase(),
-            username: username_patch.username,
+            email: email_patch.email,
+            username: faker.internet.userName(),
         }
 
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        await axios.put(`${process.env.INF_API_ENDPOINT}main/user/username`, 
-            username_patch,
-            {
-                params: { email: user.email }
-            }
+        await axios.put(`${process.env.INF_API_ENDPOINT}main/user/${user.username}/email`, 
+            email_patch
         )
 
         let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user_after_update,

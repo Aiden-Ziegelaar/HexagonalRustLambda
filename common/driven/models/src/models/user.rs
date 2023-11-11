@@ -35,12 +35,12 @@ impl DynamoDbModel for User {
         let mut item = HashMap::new();
         item.insert(
             "Pkey".to_string(),
-            AttributeValue::S("USER#".to_string() + &self.email.clone()),
+            AttributeValue::S("USER#".to_string() + &self.username.clone()),
         );
         item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
         item.insert(
             "GSI1Pkey".to_string(),
-            AttributeValue::S("USER#".to_string() + &self.username.clone()),
+            AttributeValue::S("USER#".to_string() + &self.email.clone()),
         );
         item.insert("GSI1Skey".to_string(), AttributeValue::S("-".to_string()));
         item.insert("first".to_string(), AttributeValue::S(self.first.clone()));
@@ -74,14 +74,14 @@ impl DynamoDbModel for User {
 }
 
 impl User {
-    pub fn into_attr_map_unique_username(&self) -> HashMap<String, AttributeValue> {
+    pub fn into_attr_map_unique_email(&self) -> HashMap<String, AttributeValue> {
         let mut item = HashMap::new();
         item.insert(
             "Pkey".to_string(),
-            AttributeValue::S("USER#USERNAME#".to_string() + &self.username.clone()),
+            AttributeValue::S("USER#EMAIL#".to_string() + &self.email.clone()),
         );
         item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
-        item.insert("email".to_string(), AttributeValue::S(self.email.clone()));
+        item.insert("username".to_string(), AttributeValue::S(self.username.clone()));
         item
     }
 }
@@ -110,20 +110,20 @@ impl MutableUser {
 #[automock]
 #[async_trait]
 pub trait UserRepositoryPort {
-    async fn user_get_by_email(&self, email: &String) -> Result<Option<User>, HexagonalError>;
-    async fn user_get_by_username(&self, username: &String) -> Result<Vec<User>, HexagonalError>;
+    async fn user_get_by_email(&self, email: &String) -> Result<Vec<User>, HexagonalError>;
+    async fn user_get_by_username(&self, username: &String) -> Result<Option<User>, HexagonalError>;
     async fn user_create(&self, user: &User) -> Result<User, HexagonalError>;
-    async fn user_update_by_email(
+    async fn user_update_by_username(
         &self,
-        email: &String,
+        username: &String,
         user: MutableUser,
     ) -> Result<User, HexagonalError>;
-    async fn user_update_username_by_email(
+    async fn user_update_email_by_username(
         &self,
-        email: &String,
-        new_username: &String,
+        username: &String,
+        new_email: &String,
     ) -> Result<(), HexagonalError>;
-    async fn user_delete_by_email(&self, email: &String) -> Result<User, HexagonalError>;
+    async fn user_delete_by_username(&self, email: &String) -> Result<User, HexagonalError>;
 }
 
 pub struct UserRepositoryAdaptor<'a> {
@@ -140,10 +140,10 @@ impl<'a> UserRepositoryAdaptor<'a> {
 
 #[async_trait]
 impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
-    async fn user_get_by_email(&self, email: &String) -> Result<Option<User>, HexagonalError> {
+    async fn user_get_by_username(&self, username: &String) -> Result<Option<User>, HexagonalError> {
         let result = self
             .persistance_repository
-            .get_item_primary(format!("USER#{}", email.to_string()), "-".to_string())
+            .get_item_primary(format!("USER#{}", username.to_string()), "-".to_string())
             .await;
 
         match result {
@@ -159,11 +159,11 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
         }
     }
 
-    async fn user_get_by_username(&self, username: &String) -> Result<Vec<User>, HexagonalError> {
+    async fn user_get_by_email(&self, email: &String) -> Result<Vec<User>, HexagonalError> {
         let result = self
             .persistance_repository
             .get_item_index(
-                username.to_string(),
+                email.to_string(),
                 "-".to_string(),
                 persistance_repository::GSIs::GSI1,
             )
@@ -194,7 +194,7 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
 
     async fn user_create(&self, user: &User) -> Result<User, HexagonalError> {
         let user_model: HashMap<String, AttributeValue> = user.into_attr_map();
-        let username_model: HashMap<String, AttributeValue> = user.into_attr_map_unique_username();
+        let email_model: HashMap<String, AttributeValue> = user.into_attr_map_unique_email();
 
         let pkey_unique = "attribute_not_exists(Pkey) AND attribute_not_exists(Skey)";
 
@@ -204,9 +204,9 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .condition_expression(pkey_unique.to_string())
             .build();
 
-        let username_put = aws_sdk_dynamodb::types::Put::builder()
+        let email_put = aws_sdk_dynamodb::types::Put::builder()
             .table_name(self.persistance_repository.table_name.clone())
-            .set_item(Some(username_model))
+            .set_item(Some(email_model))
             .condition_expression(pkey_unique.to_string())
             .build();
 
@@ -215,7 +215,7 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .build();
 
         let username_transact = aws_sdk_dynamodb::types::TransactWriteItem::builder()
-            .put(username_put)
+            .put(email_put)
             .build();
 
         self.persistance_repository
@@ -272,9 +272,9 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .map(|_| user.clone())
     }
 
-    async fn user_update_by_email(
+    async fn user_update_by_username(
         &self,
-        email: &String,
+        username: &String,
         user: MutableUser,
     ) -> Result<User, HexagonalError> {
         let mut update_expression = "SET ".to_string();
@@ -295,7 +295,7 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
         let result = self
             .persistance_repository
             .update_item(
-                format!("USER#{}", email.to_string()),
+                format!("USER#{}", username.to_string()),
                 "-".to_string(),
                 update_expression.to_string(),
                 Some(attr_names),
@@ -328,13 +328,12 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
         }
     }
 
-    async fn user_update_username_by_email(
+    async fn user_update_email_by_username(
         &self,
-
-        email: &String,
-        new_username: &String,
+        username: &String,
+        new_email: &String,
     ) -> Result<(), HexagonalError> {
-        let get_user = self.user_get_by_email(email).await;
+        let get_user = self.user_get_by_username(username).await;
         if let Err(err) = get_user {
             return Err(err);
         }
@@ -348,61 +347,61 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
             });
         }
 
-        let old_username = user.unwrap().username;
+        let old_email = user.unwrap().email;
 
-        let mut username_item = HashMap::new();
-        username_item.insert(
+        let mut email_item = HashMap::new();
+        email_item.insert(
             "Pkey".to_string(),
-            AttributeValue::S("USER#USERNAME#".to_string() + new_username),
+            AttributeValue::S("USER#EMAIL#".to_string() + new_email),
         );
-        username_item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
-        username_item.insert("email".to_string(), AttributeValue::S(email.clone()));
+        email_item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
+        email_item.insert("username".to_string(), AttributeValue::S(username.clone()));
         let pkey_unique = "attribute_not_exists(Pkey) AND attribute_not_exists(Skey)";
-        let username_put = aws_sdk_dynamodb::types::Put::builder()
+        let email_put = aws_sdk_dynamodb::types::Put::builder()
             .table_name(self.persistance_repository.table_name.clone())
-            .set_item(Some(username_item))
+            .set_item(Some(email_item))
             .condition_expression(pkey_unique.to_string())
             .build();
-        let username_put_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
-            .put(username_put)
+        let email_put_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
+            .put(email_put)
             .build();
 
-        let update_user_expression = "SET username = :username, updated_at = :updated_at";
+        let update_user_expression = "SET email = :email, updated_at = :updated_at";
         let mut attribute_values = HashMap::new();
         attribute_values.insert(
-            ":username".to_string(),
-            AttributeValue::S(new_username.clone()),
+            ":email".to_string(),
+            AttributeValue::S(new_email.clone()),
         );
         attribute_values.insert(":updated_at".to_string(), AttributeValue::N(default_time()));
-        let username_update = aws_sdk_dynamodb::types::Update::builder()
+        let email_update = aws_sdk_dynamodb::types::Update::builder()
             .table_name(self.persistance_repository.table_name.clone())
             .update_expression(update_user_expression.to_string())
-            .key("Pkey", AttributeValue::S("USER#".to_string() + &email))
+            .key("Pkey", AttributeValue::S("USER#".to_string() + &username))
             .key("Skey", AttributeValue::S("-".to_string()))
             .set_expression_attribute_values(Some(attribute_values))
             .build();
-        let username_update_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
-            .update(username_update)
+        let email_update_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
+            .update(email_update)
             .build();
 
-        let username_delete = aws_sdk_dynamodb::types::Delete::builder()
+        let email_delete = aws_sdk_dynamodb::types::Delete::builder()
             .table_name(self.persistance_repository.table_name.clone())
             .key(
                 "Pkey",
-                AttributeValue::S("USER#USERNAME#".to_string() + &old_username),
+                AttributeValue::S("USER#EMAIL#".to_string() + &old_email),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();
-        let username_delete_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
-            .delete(username_delete)
+        let email_delete_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
+            .delete(email_delete)
             .build();
 
         self.persistance_repository
             .client
             .transact_write_items()
-            .transact_items(username_put_action)
-            .transact_items(username_update_action)
-            .transact_items(username_delete_action)
+            .transact_items(email_put_action)
+            .transact_items(email_update_action)
+            .transact_items(email_delete_action)
             .send()
             .await
             .map_err(|err| {
@@ -454,8 +453,8 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .map(|_| ())
     }
 
-    async fn user_delete_by_email(&self, email: &String) -> Result<User, HexagonalError> {
-        let get_user = self.user_get_by_email(&email).await;
+    async fn user_delete_by_username(&self, username: &String) -> Result<User, HexagonalError> {
+        let get_user = self.user_get_by_username(&username).await;
         if let Err(err) = get_user {
             return Err(err);
         }
@@ -471,23 +470,23 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
 
         let unwrapped_user = user.unwrap();
 
-        let username_delete = aws_sdk_dynamodb::types::Delete::builder()
+        let email_delete = aws_sdk_dynamodb::types::Delete::builder()
             .table_name(self.persistance_repository.table_name.clone())
             .key(
                 "Pkey",
-                AttributeValue::S("USER#USERNAME#".to_string() + &unwrapped_user.username),
+                AttributeValue::S("USER#EMAIL#".to_string() + &unwrapped_user.username),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();
 
         let user_delete = aws_sdk_dynamodb::types::Delete::builder()
             .table_name(self.persistance_repository.table_name.clone())
-            .key("Pkey", AttributeValue::S("USER#".to_string() + email))
+            .key("Pkey", AttributeValue::S("USERNAME#".to_string() + username))
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();
 
-        let username_delete_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
-            .delete(username_delete)
+        let email_delete_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
+            .delete(email_delete)
             .build();
 
         let user_delete_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
@@ -498,7 +497,7 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .client
             .transact_write_items()
             .transact_items(user_delete_action)
-            .transact_items(username_delete_action)
+            .transact_items(email_delete_action)
             .send()
             .await
             .map_err(|err| {

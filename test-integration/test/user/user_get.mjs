@@ -15,9 +15,7 @@ describe('Get User', function () {
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user`,
-            { params: { email: user.email } }
-        )
+        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user/${user.username}`)
 
         //assert
         assert.equal(res.status, 200)
@@ -28,9 +26,8 @@ describe('Get User', function () {
         //arrange
 
         //act
-        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user`,
+        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/user/${faker.internet.userName()}`,
             { 
-                params: { email: faker.internet.email() },
                 validateStatus: () => true,
             }
         )

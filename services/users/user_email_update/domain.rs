@@ -1,22 +1,39 @@
 use error::HexagonalError;
-use eventing::{events::user::username_updated::EventUsernameUpdatedV1, EventingPort};
+use eventing::{events::user::username_updated::EventEmailUpdatedV1, EventingPort};
+use lib_user_regexes::create_email_regex;
 use models::models::user::UserRepositoryPort;
+use regex::Regex;
+use tokio::sync::OnceCell;
 
-pub async fn user_username_update_core<T1: UserRepositoryPort, T2: EventingPort>(
+pub static EMAIL_REGEX: OnceCell<Regex> = OnceCell::const_new();
+
+pub async fn user_email_update_core<T1: UserRepositoryPort, T2: EventingPort>(
     user_repository_port: &T1,
     eventing_port: &T2,
-    email: &String,
     username: &String,
+    new_email: &String
 ) -> Result<(), HexagonalError> {
+    let email_regex = EMAIL_REGEX.get_or_init(create_email_regex);
+
+    let lower_email = new_email.to_ascii_lowercase();
+
+    if !email_regex.await.is_match(&lower_email) {
+        return Err(HexagonalError {
+            error: error::HexagonalErrorCode::BadInput,
+            message: "Invalid email".to_string(),
+            trace: "".to_string(),
+        });
+    }
+
     let result = user_repository_port
-        .user_update_username_by_email(email, username)
+        .user_update_email_by_username(username, &lower_email)
         .await;
 
     if result.is_ok() {
         let event_result = eventing_port
-            .emit(&EventUsernameUpdatedV1::new(
-                email.clone(),
+            .emit(&EventEmailUpdatedV1::new(
                 username.clone(),
+                lower_email.clone(),
             ))
             .await;
 
@@ -38,22 +55,22 @@ mod tests {
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
         let mut eventing_port = eventing::MockEventingPort::new();
 
-        let email = "thisEmailIsNotValidated".to_string();
+        let email = "thisEmailisValidated@test.com".to_string();
         let username = "thisUsernameIsNotValidated".to_string();
 
         user_repository_port
-            .expect_user_update_username_by_email()
+            .expect_user_update_email_by_username()
             .times(1)
             .returning(move |_, _| Ok(()));
 
         eventing_port
-            .expect_emit::<EventUsernameUpdatedV1>()
+            .expect_emit::<EventEmailUpdatedV1>()
             .times(1)
             .returning(move |_| Ok(()));
 
         // Act
         let result =
-            user_username_update_core(&user_repository_port, &eventing_port, &email, &username)
+            user_email_update_core(&user_repository_port, &eventing_port, &username, &email)
                 .await;
 
         // Assert
@@ -66,11 +83,11 @@ mod tests {
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
         let eventing_port = eventing::MockEventingPort::new();
 
-        let email = "thisEmailIsNotValidated".to_string();
+        let email = "thisEmailisValidated@test.com".to_string();
         let username = "thisUsernameIsNotValidated".to_string();
 
         user_repository_port
-            .expect_user_update_username_by_email()
+            .expect_user_update_email_by_username()
             .times(1)
             .returning(move |_, _| {
                 Err(HexagonalError {
@@ -82,7 +99,7 @@ mod tests {
 
         // Act
         let result =
-            user_username_update_core(&user_repository_port, &eventing_port, &email, &username)
+            user_email_update_core(&user_repository_port, &eventing_port, &username, &email)
                 .await;
 
         // Assert
@@ -95,20 +112,20 @@ mod tests {
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
         let mut eventing_port = eventing::MockEventingPort::new();
 
-        let email = "thisEmailIsNotValidated".to_string();
+        let email = "thisEmailisValidated@test.com".to_string();
         let username = "thisUsernameIsNotValidated".to_string();
 
         user_repository_port
-            .expect_user_update_username_by_email()
+            .expect_user_update_email_by_username()
             .times(1)
             .returning(move |_, _| Ok(()));
 
         eventing_port
-            .expect_emit::<EventUsernameUpdatedV1>()
+            .expect_emit::<EventEmailUpdatedV1>()
             .times(1)
             .returning(move |_| {
                 Err(HexagonalError {
-                    error: error::HexagonalErrorCode::NotFound,
+                    error: error::HexagonalErrorCode::AdaptorError,
                     message: "test".to_string(),
                     trace: "".to_string(),
                 })
@@ -116,7 +133,7 @@ mod tests {
 
         // Act
         let result =
-            user_username_update_core(&user_repository_port, &eventing_port, &email, &username)
+            user_email_update_core(&user_repository_port, &eventing_port, &username, &email)
                 .await;
 
         // Assert

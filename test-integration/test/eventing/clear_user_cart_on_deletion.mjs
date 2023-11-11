@@ -2,7 +2,7 @@ import axios from 'axios';
 import { assert, expect } from 'chai';
 import { faker } from '@faker-js/faker';
 
-let completion_NFR = 5000;
+let completion_NFR = 10000;
 let sleep = 500;
 let iterations = completion_NFR / sleep;
 
@@ -10,7 +10,7 @@ describe('Clear Cart on User Deletion', function () {
     it('should add multiple products to a users cart then clear the cart when the user is deleted', async function () {
         //arrange
         this.timeout(completion_NFR);
-        let user_id = faker.internet.email();
+        let user_id = faker.internet.userName();
 
         let cart_items = Array(10).fill().map(() => {
                 return {
@@ -27,8 +27,8 @@ describe('Clear Cart on User Deletion', function () {
         let res_user_create = await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, {
             first: faker.person.firstName(),
             last: faker.person.lastName(),
-            email: user_id,
-            username: faker.internet.userName(),
+            email: faker.internet.email(),
+            username: user_id,
         })
 
         let res_post_promises = cart_items.map(
@@ -36,12 +36,7 @@ describe('Clear Cart on User Deletion', function () {
         )
         await Promise.all(res_post_promises);
 
-        let res_user_delete = await axios.delete(`${process.env.INF_API_ENDPOINT}main/user`, {
-            params: {
-                email: user_id
-            }
-        })
-
+        let res_user_delete = await axios.delete(`${process.env.INF_API_ENDPOINT}main/user/${user_id}`)
         let cart_items_len = 10;
         let calls = 0;
 

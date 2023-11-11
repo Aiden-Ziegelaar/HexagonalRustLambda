@@ -3,9 +3,9 @@ use models::models::user::{User, UserRepositoryPort};
 
 pub async fn user_get_core<T1: UserRepositoryPort>(
     user_repository_port: &T1,
-    email: &String,
+    username: &String,
 ) -> Result<Option<User>, HexagonalError> {
-    user_repository_port.user_get_by_email(email).await
+    user_repository_port.user_get_by_username(username).await
 }
 
 #[cfg(test)]
@@ -19,10 +19,10 @@ mod tests {
         // Arrange
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
 
-        let email = "thisEmailIsNotValidated".to_string();
+        let username = "mycoolusername".to_string();
 
         let user = User {
-            email: email.clone(),
+            email: "test@test.com".to_string(),
             first: "first".to_string(),
             last: "last".to_string(),
             username: "username".to_string(),
@@ -33,12 +33,12 @@ mod tests {
         let return_user = user.clone();
 
         user_repository_port
-            .expect_user_get_by_email()
+            .expect_user_get_by_username()
             .times(1)
             .returning(move |_| Ok(Some(return_user.clone())));
 
         // Act
-        let result = user_get_core(&user_repository_port, &email).await;
+        let result = user_get_core(&user_repository_port, &username).await;
 
         // Assert
         assert!(result.is_ok());
@@ -50,15 +50,15 @@ mod tests {
         // Arrange
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
 
-        let email = "thisEmailIsNotValidated".to_string();
+        let username = "mycoolusername".to_string();
 
         user_repository_port
-            .expect_user_get_by_email()
+            .expect_user_get_by_username()
             .times(1)
             .returning(move |_| Ok(None));
 
         // Act
-        let result = user_get_core(&user_repository_port, &email).await;
+        let result = user_get_core(&user_repository_port, &username).await;
 
         // Assert
         assert!(result.is_ok());
@@ -70,10 +70,10 @@ mod tests {
         // Arrange
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
 
-        let email = "thisEmailIsNotValidated".to_string();
+        let username = "mycoolusername".to_string();
 
         user_repository_port
-            .expect_user_get_by_email()
+            .expect_user_get_by_username()
             .times(1)
             .returning(move |_| {
                 Err(HexagonalError {
@@ -84,7 +84,7 @@ mod tests {
             });
 
         // Act
-        let result = user_get_core(&user_repository_port, &email).await;
+        let result = user_get_core(&user_repository_port, &username).await;
 
         // Assert
         assert!(result.is_err());

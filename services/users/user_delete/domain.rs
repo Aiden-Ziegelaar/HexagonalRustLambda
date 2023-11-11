@@ -5,11 +5,10 @@ use models::models::user::{User, UserRepositoryPort};
 pub async fn user_delete_core<T1: UserRepositoryPort, T2: EventingPort>(
     user_repository_port: &T1,
     eventing_port: &T2,
-    email: &String,
+    username: &String,
 ) -> Result<User, HexagonalError> {
-    let lowercase_email = email.to_lowercase();
     let user = user_repository_port
-        .user_delete_by_email(&lowercase_email)
+        .user_delete_by_username(&username)
         .await;
 
     if user.is_ok() {
@@ -36,10 +35,10 @@ mod tests {
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
         let mut eventing_port = eventing::MockEventingPort::new();
 
-        let email = "thisEmailIsNotValidated".to_string();
+        let username = "mycoolusername".to_string();
 
         let user = User {
-            email: email.clone(),
+            email: "test@test.com".to_string(),
             first: "first".to_string(),
             last: "last".to_string(),
             username: "username".to_string(),
@@ -50,7 +49,7 @@ mod tests {
         let return_user = user.clone();
 
         user_repository_port
-            .expect_user_delete_by_email()
+            .expect_user_delete_by_username()
             .times(1)
             .returning(move |_| Ok(return_user.clone()));
 
@@ -60,7 +59,7 @@ mod tests {
             .returning(move |_| Ok(()));
 
         // Act
-        let result = user_delete_core(&user_repository_port, &eventing_port, &email).await;
+        let result = user_delete_core(&user_repository_port, &eventing_port, &username).await;
 
         // Assert
         assert!(result.is_ok());
@@ -73,10 +72,10 @@ mod tests {
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
         let eventing_port = eventing::MockEventingPort::new();
 
-        let email = "thisEmailIsNotValidated".to_string();
+        let username = "mycoolusername".to_string();
 
         user_repository_port
-            .expect_user_delete_by_email()
+            .expect_user_delete_by_username()
             .times(1)
             .returning(move |_| {
                 Err(HexagonalError {
@@ -87,7 +86,7 @@ mod tests {
             });
 
         // Act
-        let result = user_delete_core(&user_repository_port, &eventing_port, &email).await;
+        let result = user_delete_core(&user_repository_port, &eventing_port, &username).await;
 
         // Assert
         assert!(result.is_err());
@@ -102,11 +101,11 @@ mod tests {
         // Arrange
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
         let mut eventing_port = eventing::MockEventingPort::new();
-
-        let email = "thisEmailIsNotValidated".to_string();
+        
+        let username = "mycoolusername".to_string();
 
         let user = User {
-            email: email.clone(),
+            email: "test@test.com".to_string(),
             first: "first".to_string(),
             last: "last".to_string(),
             username: "username".to_string(),
@@ -115,7 +114,7 @@ mod tests {
         };
 
         user_repository_port
-            .expect_user_delete_by_email()
+            .expect_user_delete_by_username()
             .times(1)
             .returning(move |_| Ok(user.clone()));
 
@@ -131,7 +130,7 @@ mod tests {
             });
 
         // Act
-        let result = user_delete_core(&user_repository_port, &eventing_port, &email).await;
+        let result = user_delete_core(&user_repository_port, &eventing_port, &username).await;
 
         // Assert
         assert!(result.is_err());

@@ -37,15 +37,15 @@ pub async fn user_update_put_http_port<T1: UserRepositoryPort, T2: EventingPort>
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let email = match http_request.query_string_parameters.first("email") {
-        Some(value) => value,
+    let username = match http_request.path_parameters.first("username") {
+        Some(username) => username,
         None => {
-            let err = HexagonalError {
+            return Ok(HexagonalError {
                 error: error::HexagonalErrorCode::BadInput,
-                message: "email is required".to_string(),
+                message: "username is required".to_string(),
                 trace: "".to_string(),
-            };
-            return Ok(err.compile_to_http_response());
+            }
+            .compile_to_http_response())
         }
     };
     let payload = http_request.payload;
@@ -53,7 +53,7 @@ pub async fn user_update_put_http_port<T1: UserRepositoryPort, T2: EventingPort>
     match user_update_core(
         user_repository_port,
         eventing_port,
-        &email.to_string(),
+        &username.to_string(),
         user_updates,
     )
     .await

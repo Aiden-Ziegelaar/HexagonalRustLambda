@@ -5,7 +5,7 @@ use models::models::user::{MutableUser, User, UserRepositoryPort};
 pub async fn user_update_core<T1: UserRepositoryPort, T2: EventingPort>(
     user_repository_port: &T1,
     eventing_port: &T2,
-    email: &String,
+    username: &String,
     update: MutableUser,
 ) -> Result<User, HexagonalError> {
     if update.first.is_none() && update.last.is_none() {
@@ -17,7 +17,7 @@ pub async fn user_update_core<T1: UserRepositoryPort, T2: EventingPort>(
     }
 
     let user = user_repository_port
-        .user_update_by_email(email, update)
+        .user_update_by_username(username, update)
         .await;
 
     if user.is_ok() {
@@ -61,7 +61,7 @@ mod tests {
         let return_user = user.clone();
 
         user_repository_port
-            .expect_user_update_by_email()
+            .expect_user_update_by_username()
             .times(1)
             .returning(move |_, _| Ok(return_user.clone()));
 
@@ -74,7 +74,7 @@ mod tests {
         let result = user_update_core(
             &user_repository_port,
             &eventing_port,
-            &user.email,
+            &user.username,
             mutable_user.clone(),
         )
         .await;
@@ -108,7 +108,7 @@ mod tests {
         let result = user_update_core(
             &user_repository_port,
             &eventing_port,
-            &user.email,
+            &user.username,
             mutable_user.clone(),
         )
         .await;
@@ -142,7 +142,7 @@ mod tests {
         };
 
         user_repository_port
-            .expect_user_update_by_email()
+            .expect_user_update_by_username()
             .times(1)
             .returning(move |_, _| {
                 Err(HexagonalError {
@@ -156,7 +156,7 @@ mod tests {
         let result = user_update_core(
             &user_repository_port,
             &eventing_port,
-            &user.email,
+            &user.username,
             mutable_user.clone(),
         )
         .await;
@@ -192,7 +192,7 @@ mod tests {
         let return_user = user.clone();
 
         user_repository_port
-            .expect_user_update_by_email()
+            .expect_user_update_by_username()
             .times(1)
             .returning(move |_, _| Ok(return_user.clone()));
 
@@ -211,7 +211,7 @@ mod tests {
         let result = user_update_core(
             &user_repository_port,
             &eventing_port,
-            &user.email,
+            &user.username,
             mutable_user.clone(),
         )
         .await;

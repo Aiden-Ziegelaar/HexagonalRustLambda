@@ -15,9 +15,7 @@ describe('Delete User', function () {
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        let res = await axios.delete(`${process.env.INF_API_ENDPOINT}main/user`,
-            { params: { email: user.email } }
-        )
+        let res = await axios.delete(`${process.env.INF_API_ENDPOINT}main/user/${user.username}`)
 
         //assert
         assert.equal(res.status, 200)
@@ -27,9 +25,8 @@ describe('Delete User', function () {
         //arrange
 
         //act
-        let res = await axios.delete(`${process.env.INF_API_ENDPOINT}main/user`,
-            { 
-                params: { email: faker.internet.email() },
+        let res = await axios.delete(`${process.env.INF_API_ENDPOINT}main/user/${faker.internet.userName()}`,
+            {
                 validateStatus: () => true,
             }
         )

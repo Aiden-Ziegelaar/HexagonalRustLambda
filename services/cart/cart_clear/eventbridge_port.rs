@@ -9,8 +9,8 @@ pub async fn cart_clear_user_deleted_event_port<T1: CartRepositoryPort, T2: Even
     eventing_port: &T2,
     event: CloudWatchEvent<EventUserDeletedV1>,
 ) -> Result<(), ()> {
-    let email = event.detail.unwrap().user.email;
-    match cart_clear_delete_core(cart_repository_port, eventing_port, email.to_string()).await  {
+    let username = event.detail.unwrap().user.username;
+    match cart_clear_delete_core(cart_repository_port, eventing_port, username.to_string()).await  {
         Ok(_) => Ok(()),
         Err(err) => {
             println!("Error: {}", err);

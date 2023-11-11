@@ -1,4 +1,4 @@
-use crate::domain::user_username_update_core;
+use crate::domain::user_email_update_core;
 
 use error::HexagonalError;
 use eventing::EventingPort;
@@ -16,12 +16,12 @@ lazy_static! {
         let schema = json!({
             "type": "object",
             "properties": {
-                "username": {
+                "email": {
                     "type": "string"
                 }
             },
             "required": [
-                "username"
+                "email"
             ],
             "additionalProperties": false
         });
@@ -33,8 +33,8 @@ lazy_static! {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct UserUsernameUpdate {
-    username: String,
+struct UserEmailUpdate {
+    email: String,
 }
 
 pub async fn user_username_update_put_http_port<T1: UserRepositoryPort, T2: EventingPort>(
@@ -42,24 +42,24 @@ pub async fn user_username_update_put_http_port<T1: UserRepositoryPort, T2: Even
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let email = match http_request.query_string_parameters.first("email") {
-        Some(value) => value,
+    let username = match http_request.path_parameters.first("username") {
+        Some(username) => username,
         None => {
-            let err = HexagonalError {
+            return Ok(HexagonalError {
                 error: error::HexagonalErrorCode::BadInput,
-                message: "email is required".to_string(),
+                message: "username is required".to_string(),
                 trace: "".to_string(),
-            };
-            return Ok(err.compile_to_http_response());
+            }
+            .compile_to_http_response())
         }
     };
     let payload = http_request.payload;
-    let user_updates = http_payload_decoder!(UserUsernameUpdate, USER_SCHEMA, payload);
-    match user_username_update_core(
+    let user_updates = http_payload_decoder!(UserEmailUpdate, USER_SCHEMA, payload);
+    match user_email_update_core(
         user_repository_port,
         eventing_port,
-        &email.to_string(),
-        &user_updates.username,
+        &username.to_string(),
+        &user_updates.email,
     )
     .await
     {

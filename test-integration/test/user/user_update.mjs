@@ -25,11 +25,8 @@ describe('Update User', function () {
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user`, 
-            user_patch,
-            {
-                params: { email: user.email }
-            }
+        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/${user.username}`, 
+            user_patch
         )
 
         //assert
@@ -52,11 +49,10 @@ describe('Update User', function () {
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user`, 
+        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/${user.username}`, 
             user_patch,
             { 
                 validateStatus: () => true,
-                params: { email: user.email }
             }
         )
 
@@ -81,11 +77,10 @@ describe('Update User', function () {
         //act
         await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
 
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user`, 
+        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/${user.username}`, 
             user_patch,
             { 
                 validateStatus: () => true,
-                params: { email: user.email }
             }
         )
 
@@ -101,11 +96,10 @@ describe('Update User', function () {
         }
 
         //act
-        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user`, 
+        let res = await axios.put(`${process.env.INF_API_ENDPOINT}main/user/${faker.internet.userName()}`, 
             user_patch,
             { 
                 validateStatus: () => true,
-                params: { email: faker.internet.email().toLowerCase() }
             }
         )
 

@@ -11,18 +11,18 @@ pub async fn user_delete_delete_http_port<T1: UserRepositoryPort, T2: EventingPo
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let email = match http_request.query_string_parameters.first("email") {
-        Some(value) => value,
+    let username = match http_request.path_parameters.first("username") {
+        Some(username) => username,
         None => {
-            let err = HexagonalError {
+            return Ok(HexagonalError {
                 error: error::HexagonalErrorCode::BadInput,
-                message: "email is required".to_string(),
+                message: "username is required".to_string(),
                 trace: "".to_string(),
-            };
-            return Ok(err.compile_to_http_response());
+            }
+            .compile_to_http_response())
         }
     };
-    match user_delete_core(user_repository_port, eventing_port, &email.to_string()).await {
+    match user_delete_core(user_repository_port, eventing_port, &username.to_string()).await {
         Ok(user) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)
