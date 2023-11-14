@@ -7,25 +7,18 @@ describe('Get Cart', function () {
         //arrange
         let cart_item = {
             product_id: faker.string.uuid(),
-            user_id: faker.internet.email(),
             quantity: faker.number.int({
                 min: 1, 
                 max: 10
             })
         }
 
+        let user_id = faker.internet.userName();
+
         //act
-        await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, cart_item).catch(err => {
-            console.log(err)
-        })
+        await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}/item`, cart_item)
 
-        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart`, {
-            params: {
-                id: cart_item.user_id
-            }
-        })
-
-        cart_item.user_id = cart_item.user_id.toLowerCase();
+        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}`)
 
         //assert
         assert.equal(res.status, 200)
@@ -34,12 +27,11 @@ describe('Get Cart', function () {
 
     it('should add multiple products to a users cart then retrieve the cart', async function () {
         //arrange
-        let user_id = faker.internet.email();
+        let user_id = faker.internet.userName();
 
         let cart_items = Array(10).fill().map(() => {
                 return {
                     product_id: faker.string.uuid(),
-                    user_id,
                     quantity: faker.number.int({
                         min: 1, 
                         max: 10
@@ -49,15 +41,11 @@ describe('Get Cart', function () {
 
         //act
         let res_post_promises = cart_items.map(
-            cart_item => axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, cart_item)
+            cart_item => axios.post(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}/item`, cart_item)
         )
         await Promise.all(res_post_promises);
 
-        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart`, {
-            params: {
-                id: user_id
-            }
-        })
+        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}`)
 
         //assert
         assert.equal(res.status, 200);
@@ -66,14 +54,10 @@ describe('Get Cart', function () {
 
     it('should return an empty array for no cart', async function () {
         //arrange
-        let user_id = faker.internet.email();
+        let user_id = faker.internet.userName();
 
         //act
-        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart`, {
-            params: {
-                id: user_id
-            }
-        })
+        let res = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}`)
 
         //assert
         assert.equal(res.status, 200);

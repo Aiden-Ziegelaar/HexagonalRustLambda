@@ -1,32 +1,26 @@
 use crate::domain::cart_get_core;
 
+use error::HexagonalError;
 use http::{Error, Response, StatusCode};
 use http_apigw_adaptor::HttpPortRequest;
 use models::models::cart::CartRepositoryPort;
-use serde_json::json;
 
 pub async fn cart_get_get_http_port<T1: CartRepositoryPort>(
     cart_repository_port: &T1,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let email = match http_request.query_string_parameters.first("id") {
-        Some(value) => value,
+    let username = match http_request.path_parameters.first("username") {
+        Some(username) => username,
         None => {
-            let resp = Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .header("content-type", "application/json")
-                .body(
-                    json! {
-                        {
-                            "error": "id is required"
-                        }
-                    }
-                    .to_string(),
-                );
-            return Ok(resp.unwrap());
+            return Ok(HexagonalError {
+                error: error::HexagonalErrorCode::BadInput,
+                message: "username is required".to_string(),
+                trace: "".to_string(),
+            }
+            .compile_to_http_response())
         }
     };
-    match cart_get_core(cart_repository_port, email.to_string()).await {
+    match cart_get_core(cart_repository_port, username.to_string()).await {
         Ok(result) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

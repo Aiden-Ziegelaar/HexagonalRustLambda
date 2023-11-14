@@ -15,7 +15,6 @@ describe('Clear Cart on User Deletion', function () {
         let cart_items = Array(10).fill().map(() => {
                 return {
                     product_id: faker.string.uuid(),
-                    user_id,
                     quantity: faker.number.int({
                         min: 1, 
                         max: 10
@@ -32,7 +31,7 @@ describe('Clear Cart on User Deletion', function () {
         })
 
         let res_post_promises = cart_items.map(
-            cart_item => axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, cart_item)
+            cart_item => axios.post(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}/item`, cart_item)
         )
         await Promise.all(res_post_promises);
 
@@ -41,11 +40,7 @@ describe('Clear Cart on User Deletion', function () {
         let calls = 0;
 
         while (cart_items_len > 0 && calls < iterations) {
-            let res_items_post_delete = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart`, {
-                params: {
-                    id: user_id
-                }
-            })
+            let res_items_post_delete = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}`)
             cart_items_len = res_items_post_delete.data.length;
             if (cart_items_len > 0) {
                 calls++;

@@ -11,18 +11,18 @@ pub async fn cart_remove_item_delete_http_port<T1: CartRepositoryPort, T2: Event
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let user_id = match http_request.query_string_parameters.first("email") {
-        Some(value) => value,
+    let username = match http_request.path_parameters.first("username") {
+        Some(username) => username,
         None => {
-            let err = HexagonalError {
+            return Ok(HexagonalError {
                 error: error::HexagonalErrorCode::BadInput,
-                message: "email is required".to_string(),
+                message: "username is required".to_string(),
                 trace: "".to_string(),
-            };
-            return Ok(err.compile_to_http_response());
+            }
+            .compile_to_http_response())
         }
     };
-    let product_id = match http_request.query_string_parameters.first("product_id") {
+    let product_id = match http_request.path_parameters.first("product_id") {
         Some(value) => value,
         None => {
             let err = HexagonalError {
@@ -33,7 +33,7 @@ pub async fn cart_remove_item_delete_http_port<T1: CartRepositoryPort, T2: Event
             return Ok(err.compile_to_http_response());
         }
     };
-    match cart_remove_item_core(cart_repository_port, eventing_port, user_id.to_string(), product_id.to_string()).await {
+    match cart_remove_item_core(cart_repository_port, eventing_port, username.to_string(), product_id.to_string()).await {
         Ok(result) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

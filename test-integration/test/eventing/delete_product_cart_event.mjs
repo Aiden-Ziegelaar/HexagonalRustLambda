@@ -10,8 +10,8 @@ describe('Remove Product from Cart on Product Deletion', function () {
     it('should add a product to multiple users cart then clear the cart when the product is deleted', async function () {
         //arrange
         this.timeout(completion_NFR);
-        let user_id_1 = faker.internet.email();
-        let user_id_2 = faker.internet.email();
+        let user_id_1 = faker.internet.userName();
+        let user_id_2 = faker.internet.userName();
 
         let product = {
             product_name: faker.commerce.productName(),
@@ -25,14 +25,12 @@ describe('Remove Product from Cart on Product Deletion', function () {
         let res_product_create = await axios.post(`${process.env.INF_API_ENDPOINT}main/product`, product)
                 
         await Promise.all([
-            axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, {
+            axios.post(`${process.env.INF_API_ENDPOINT}main/cart/${user_id_1}/item/`, {
                 product_id: res_product_create.data.id,
-                user_id: user_id_1,
                 quantity: 1
             }),
-            axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, {
+            axios.post(`${process.env.INF_API_ENDPOINT}main/cart/${user_id_2}/item`, {
                 product_id: res_product_create.data.id,
-                user_id: user_id_2,
                 quantity: 1
             })
         ])
@@ -43,16 +41,8 @@ describe('Remove Product from Cart on Product Deletion', function () {
         let calls = 0;
 
         while (cart_items_len > 0 && calls < iterations) {
-            let res_items_post_delete_u1 = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart`, {
-                params: {
-                    id: user_id_1
-                }
-            })
-            let res_items_post_delete_u2 = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart`, {
-                params: {
-                    id: user_id_2
-                }
-            })
+            let res_items_post_delete_u1 = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart/${user_id_1}`)
+            let res_items_post_delete_u2 = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart/${user_id_2}`)
             cart_items_len = res_items_post_delete_u1.data.length + res_items_post_delete_u2.data.length;
             if (cart_items_len > 0) {
                 calls++;

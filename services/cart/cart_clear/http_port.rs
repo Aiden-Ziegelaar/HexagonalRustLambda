@@ -11,7 +11,7 @@ pub async fn cart_create_post_http_port<T1: CartRepositoryPort, T2: EventingPort
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
-    let email = match http_request.query_string_parameters.first("id") {
+    let email = match http_request.path_parameters.first("username") {
         Some(value) => value,
         None => {
             let resp = Response::builder()
@@ -20,7 +20,7 @@ pub async fn cart_create_post_http_port<T1: CartRepositoryPort, T2: EventingPort
                 .body(
                     json! {
                         {
-                            "error": "id is required"
+                            "error": "username is required"
                         }
                     }
                     .to_string(),

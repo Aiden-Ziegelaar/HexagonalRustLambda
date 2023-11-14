@@ -7,7 +7,6 @@ describe('Add Product to Cart', function () {
         //arrange
         let cart_item = {
             product_id: faker.string.uuid(),
-            user_id: faker.internet.email(),
             quantity: faker.number.int({
                 min: 1, 
                 max: 10
@@ -15,11 +14,7 @@ describe('Add Product to Cart', function () {
         }
 
         //act
-        let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, cart_item).catch(err => {
-            console.log(err)
-        })
-
-        cart_item.user_id = cart_item.user_id.toLowerCase();
+        let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/${faker.internet.userName()}/item`, cart_item)
 
         //assert
         assert.equal(res.status, 201)

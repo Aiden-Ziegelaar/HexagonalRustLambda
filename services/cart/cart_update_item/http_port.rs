@@ -1,5 +1,6 @@
 use crate::domain::cart_update_item_core;
 
+use error::HexagonalError;
 use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
 use http_apigw_adaptor::HttpPortRequest;
@@ -7,6 +8,7 @@ use http_port_tools::http_payload_decoder;
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;
 use models::models::cart::{CartItem, CartRepositoryPort};
+use serde::{Serialize, Deserialize};
 use serde_json::json;
 
 lazy_static! {
@@ -14,20 +16,12 @@ lazy_static! {
         let schema = json!({
             "type": "object",
             "properties": {
-                "product_id": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                },
                 "quantity": {
                     "type": "integer",
                     "minimum": 1
                 }
             },
             "required": [
-                "product_id",
-                "user_id",
                 "quantity"
             ],
             "additionalProperties": false
@@ -39,14 +33,47 @@ lazy_static! {
     };
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CartUpdateItemBody {
+    pub quantity: u32,
+}
+
 pub async fn cart_update_item_patch_http_port<T1: CartRepositoryPort, T2: EventingPort>(
     cart_repository_port: &T1,
     eventing_port: &T2,
     http_request: HttpPortRequest,
 ) -> Result<Response<String>, Error> {
+    let username = match http_request.path_parameters.first("username") {
+        Some(username) => username,
+        None => {
+            return Ok(HexagonalError {
+                error: error::HexagonalErrorCode::BadInput,
+                message: "username is required".to_string(),
+                trace: "".to_string(),
+            }
+            .compile_to_http_response())
+        }
+    };
+    let product_id = match http_request.path_parameters.first("product_id") {
+        Some(value) => value,
+        None => {
+            let err = HexagonalError {
+                error: error::HexagonalErrorCode::BadInput,
+                message: "product_id is required".to_string(),
+                trace: "".to_string(),
+            };
+            return Ok(err.compile_to_http_response());
+        }
+    };
     let payload = http_request.payload;
-    let cart = http_payload_decoder!(CartItem, CART_ITEM_SCHEMA, payload);
-    match cart_update_item_core(cart_repository_port, eventing_port, cart).await {
+    let cart_update_item_body = http_payload_decoder!(CartUpdateItemBody, CART_ITEM_SCHEMA, payload);
+    match cart_update_item_core(cart_repository_port, eventing_port, CartItem { 
+        product_id: product_id.to_string(),
+        user_id: username.to_string(),
+        quantity: cart_update_item_body.quantity,
+        created_at: "".to_string(), // Will be excluded in adaptor
+        updated_at: "".to_string() // Will be overwritten in adaptor
+    }).await {
         Ok(result) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

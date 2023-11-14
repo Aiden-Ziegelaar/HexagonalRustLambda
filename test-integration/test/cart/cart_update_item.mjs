@@ -5,30 +5,21 @@ import { faker } from '@faker-js/faker';
 describe('Update Product in Cart', function () {
     it('should add a product to a users cart then update it', async function () {
         //arrange
+        let user_id = faker.internet.userName();
+
         let cart_item = {
             product_id: faker.string.uuid(),
-            user_id: faker.internet.email(),
             quantity: 1
         }
 
         //act
-        let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/item`, cart_item).catch(err => {
-            console.log(err)
-        })
+        let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}/item`, cart_item)
 
-        let res_update = await axios.patch(`${process.env.INF_API_ENDPOINT}main/cart/item`, {
-            product_id: cart_item.product_id,
-            user_id: cart_item.user_id,
+        let res_update = await axios.patch(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}/item/${cart_item.product_id}`, {
             quantity: 2
         })
 
-        let res_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart`, {
-            params: {
-                id: cart_item.user_id
-            }
-        })
-
-        cart_item.user_id = cart_item.user_id.toLowerCase();
+        let res_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}`)
 
         //assert
         assert.equal(res.status, 201)
