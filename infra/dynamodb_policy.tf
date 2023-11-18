@@ -38,7 +38,8 @@ data "aws_iam_policy_document" "dynamodb_single_table_access_policy_document" {
             "dynamodb:CreateTable",
             "dynamodb:Delete*",
             "dynamodb:Update*",
-            "dynamodb:PutItem"      
+            "dynamodb:PutItem",
+            "dynamodb:ConditionCheckItem"  
         ]
 
         resources = [

@@ -14,10 +14,8 @@ describe('Create Product', function () {
         }
 
         //act
-        let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/product`, product).catch(err => {
-            console.log(err)
-        })
-
+        let res = await axios.post(`${process.env.INF_API_ENDPOINT}main/product`, product)
+        
         //assert
         assert.equal(res.status, 201)
         expect(res.data).to.include(product)

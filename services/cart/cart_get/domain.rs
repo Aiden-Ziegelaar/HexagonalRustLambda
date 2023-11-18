@@ -4,7 +4,7 @@ pub async fn cart_get_core<T1: CartRepositoryPort>(
     cart_repository_port: &T1,
     user_id: String,
 ) -> Result<Vec<CartItem>, error::HexagonalError> {
-    let cart_result = cart_repository_port.cart_get_by_user_id(&user_id.to_ascii_lowercase()).await;
+    let cart_result = cart_repository_port.cart_get_by_user_id(&user_id).await;
 
     cart_result
 }

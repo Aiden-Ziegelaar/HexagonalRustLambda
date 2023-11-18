@@ -7,7 +7,7 @@ pub async fn cart_remove_item_core<T1: CartRepositoryPort, T2: EventingPort>(
     user_id: String,
     product_id: String
 ) -> Result<CartItem, error::HexagonalError> {
-    let cart_item_result = cart_repository_port.cart_remove_item(&user_id.to_ascii_lowercase(), &product_id).await;
+    let cart_item_result = cart_repository_port.cart_remove_item(&user_id, &product_id).await;
 
     if cart_item_result.is_ok() {
         let event_result = eventing_port

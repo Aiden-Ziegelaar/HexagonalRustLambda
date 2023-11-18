@@ -5,10 +5,30 @@ import { faker } from '@faker-js/faker';
 describe('Remove Product from Cart', function () {
     it('should add a product to a users cart then remove it', async function () {
         //arrange
-        let user_id = faker.internet.userName();
+        let user = {
+            first: faker.person.firstName(),
+            last: faker.person.lastName(),
+            email: faker.internet.email().toLowerCase(),
+            username: faker.internet.userName(),
+        }
+
+        //arrange
+        let product = {
+            product_name: faker.commerce.productName(),
+            description: faker.commerce.productDescription(),
+            price_cents: Number(faker.commerce.price({
+                dec: 0
+            }))
+        }
+
+        let product_res = await axios.post(`${process.env.INF_API_ENDPOINT}main/product`, product)
+        let user_res = await axios.post(`${process.env.INF_API_ENDPOINT}main/user`, user)
+
+        let product_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/product/${product_res.data.id}`)
+        let user_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/user/${user_res.data.username}`)
 
         let cart_item = {
-            product_id: faker.string.uuid(),
+            product_id: product_get.data.id,
             quantity: faker.number.int({
                 min: 1, 
                 max: 10
@@ -16,11 +36,11 @@ describe('Remove Product from Cart', function () {
         }
 
         //act
-        let res_add = await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}/item`, cart_item)
+        let res_add = await axios.post(`${process.env.INF_API_ENDPOINT}main/cart/${user_get.data.username}/item`, cart_item)
 
-        let res_delete = await axios.delete(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}/item/${cart_item.product_id}`)
+        let res_delete = await axios.delete(`${process.env.INF_API_ENDPOINT}main/cart/${user_get.data.username}/item/${cart_item.product_id}`)
 
-        let res_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart/${user_id}`)
+        let res_get = await axios.get(`${process.env.INF_API_ENDPOINT}main/cart/${user_get.data.username}`)
 
         //assert
         assert.equal(res_add.status, 201)

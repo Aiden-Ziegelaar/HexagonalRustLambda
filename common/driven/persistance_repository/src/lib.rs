@@ -9,10 +9,6 @@ use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
 
 use sdk_credential_meta_repository::SdkCredentialsMetaRepository;
-use tokio::sync::OnceCell;
-
-pub static AWS_DYNAMO_DB_REPOSITORY: OnceCell<DynamoDBSingleTableRepository> =
-    OnceCell::const_new();
 
 pub enum GSIs {
     GSI1,
@@ -46,6 +42,7 @@ impl DynamoDBSingleTableRepository {
         self.client
             .get_item()
             .table_name(self.table_name.clone())
+            .consistent_read(true)
             .key("Pkey", p_key_att)
             .key("Skey", s_key_att)
             .send()

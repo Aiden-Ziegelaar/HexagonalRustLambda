@@ -6,7 +6,7 @@ pub async fn cart_update_item_core<T1: CartRepositoryPort, T2: EventingPort>(
     eventing_port: &T2,
     cart_item: CartItem,
 ) -> Result<CartItem, error::HexagonalError> {
-    let cart_item_result = cart_repository_port.cart_update_item(&cart_item.user_id.to_ascii_lowercase(), &cart_item.product_id, cart_item.quantity).await;
+    let cart_item_result = cart_repository_port.cart_update_item(&cart_item.user_id, &cart_item.product_id, cart_item.quantity).await;
 
     if cart_item_result.is_ok() {
         let event_result = eventing_port

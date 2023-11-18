@@ -1,8 +1,4 @@
 use aws_config::SdkConfig;
-use tokio::sync::OnceCell;
-
-pub static AWS_CREDENTIAL_REPOSITORY: OnceCell<SdkCredentialsMetaRepository> =
-    OnceCell::const_new();
 
 #[derive(Clone)]
 pub struct SdkCredentialsMetaRepository {

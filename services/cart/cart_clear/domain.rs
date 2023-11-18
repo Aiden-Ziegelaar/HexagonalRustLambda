@@ -7,7 +7,7 @@ pub async fn cart_clear_delete_core<T1: CartRepositoryPort, T2: EventingPort>(
     eventing_port: &T2,
     user_id: String,
 ) -> Result<Vec<CartItem>, error::HexagonalError> {
-    let cart_clear_result = cart_repository_port.cart_clear(&user_id.to_ascii_lowercase()).await;
+    let cart_clear_result = cart_repository_port.cart_clear(&user_id).await;
 
     if cart_clear_result.is_ok() {
         let event_result = eventing_port

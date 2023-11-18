@@ -21,6 +21,7 @@ use std::{collections::HashMap, error::Error};
 use crate::{default_time, DynamoDbModel};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::types::{AttributeValue, WriteRequest};
+use aws_sdk_dynamodb::types::error::TransactionCanceledException;
 use error::HexagonalError;
 use mockall::automock;
 use persistance_repository::DynamoDBSingleTableRepository;
@@ -170,6 +171,7 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
             .persistance_repository
             .client
             .query()
+            .consistent_read(true)
             .table_name(self.persistance_repository.table_name.clone())
             .key_condition_expression(query_expression.to_string())
             .set_expression_attribute_values(
@@ -197,16 +199,114 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
     }
 
     async fn cart_add_item(&self, item: &CartItem) -> Result<CartItem, HexagonalError> {
+
+        println!("user: {}", item.user_id.to_string());
+        println!("product: {}", item.product_id.to_string());
+        
+        let user_condition_check = aws_sdk_dynamodb::types::ConditionCheck::builder()
+            .table_name(self.persistance_repository.table_name.clone())
+            .condition_expression("attribute_exists(Pkey)")
+            .key("Pkey", AttributeValue::S("USER#".to_string() + &item.user_id.to_string()))
+            .key("Skey", AttributeValue::S("-".to_string()))
+            .build();
+
+        let user_condition_check_transact = aws_sdk_dynamodb::types::TransactWriteItem::builder()
+            .condition_check(user_condition_check)
+            .build();
+
+        let product_condition_check = aws_sdk_dynamodb::types::ConditionCheck::builder()
+            .table_name(self.persistance_repository.table_name.clone())
+            .condition_expression("attribute_exists(Pkey)")
+            .key("Pkey", AttributeValue::S("PRODUCT#".to_string() + &item.product_id.to_string()))
+            .key("Skey", AttributeValue::S("-".to_string()))
+            .build();
+
+        let product_condition_check_transact = aws_sdk_dynamodb::types::TransactWriteItem::builder()
+            .condition_check(product_condition_check)
+            .build();
+
+        let put_item_request = aws_sdk_dynamodb::types::Put::builder()
+            .table_name(self.persistance_repository.table_name.clone())
+            .set_item(Some(item.into_attr_map()))
+            .condition_expression("attribute_not_exists(Pkey) AND attribute_not_exists(Skey)")
+            .build();
+
+        let put_item_request_transact = aws_sdk_dynamodb::types::TransactWriteItem::builder()
+            .put(put_item_request)
+            .build();
+
+        let write_result = self.persistance_repository
+            .client
+            .transact_write_items()
+            .transact_items(user_condition_check_transact)
+            .transact_items(product_condition_check_transact)
+            .transact_items(put_item_request_transact)
+            .send().await.map_err(|err| {
+                let err = err.into_source();
+                let default_err = HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "Unable to add product to cart, error in transaction write call".to_string(),
+                    trace: "".to_string(),
+                };
+
+                if err.is_err() {
+                    return default_err;
+                }
+
+                let err_unwrap1 = err.unwrap();
+                let err_unwrap2 = err_unwrap1.source();
+
+                if err_unwrap2.is_none() {
+                    return default_err;
+                }
+
+                let err_unwrap3 = err_unwrap2.unwrap();
+
+                println!("ERROR3: {:?}", err_unwrap3);
+
+                let err_transaction_failure =
+                    err_unwrap3.downcast_ref::<TransactionCanceledException>();
+                if err_transaction_failure.is_some() {
+                    let err_reasons = err_transaction_failure
+                        .unwrap()
+                        .cancellation_reasons
+                        .clone()
+                        .unwrap();
+                    for reason in err_reasons {
+                        let code = reason.code.unwrap_or_default();
+                        println!("code: {}", code);
+                        if code == *"ConditionalCheckFailed" {
+                            return HexagonalError {
+                                error: error::HexagonalErrorCode::Conflict,
+                                message:
+                                    "Unable to add product to cart, user and/or product does not exist"
+                                        .to_string(),
+                                trace: err_unwrap1.to_string(),
+                            };
+                        }
+                    }
+                }
+
+                default_err
+            });
+        
+        if write_result.is_err() {
+            return Err(write_result.unwrap_err());
+        }
+
         let result = self
             .persistance_repository
-            .put_new_item(item.into_attr_map())
+            .get_item_primary(
+                "CART#USER#".to_string() + &item.user_id.to_string(),
+                "CART#PRODUCT#".to_string() + &item.product_id.to_string(),
+            )
             .await;
 
         match result {
-            Ok(_) => Ok(item.clone()),
+            Ok(get_item_result) => Ok(CartItem::from_attr_map(get_item_result.item.unwrap())),
             Err(e) => Err(HexagonalError {
                 error: error::HexagonalErrorCode::AdaptorError,
-                message: "Unable to add item to cart".to_string(),
+                message: "Item added to cart, but unable to return result".to_string(),
                 trace: e.to_string(),
             }),
         }
@@ -408,8 +508,6 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                     })
                 }
             };
-
-
 
             if delete_result.is_err() {
                 errors.push(delete_result.unwrap_err())
