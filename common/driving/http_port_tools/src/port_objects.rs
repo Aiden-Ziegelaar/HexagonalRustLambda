@@ -1,8 +1,18 @@
+
 use std::future::Future;
 use std::pin::Pin;
 
 use lambda_http::RequestExt;
+
 pub struct HttpPortResponse<T>(pub http::Response<T>);
+
+pub struct HttpPortRequest {
+    pub path_parameters: query_map::QueryMap,
+    pub query_string_parameters: query_map::QueryMap,
+    pub payload: Option<String>,
+    pub headers: http::HeaderMap,
+}
+
 
 impl lambda_http::IntoResponse for HttpPortResponse<String> {
     fn into_response(
@@ -35,13 +45,6 @@ impl lambda_http::IntoResponse for HttpPortResponse<Vec<u8>> {
         let body = lambda_http::Body::from(body);
         Box::pin(async move { lambda_http::Response::from_parts(parts, body) })
     }
-}
-
-pub struct HttpPortRequest {
-    pub path_parameters: query_map::QueryMap,
-    pub query_string_parameters: query_map::QueryMap,
-    pub payload: Option<String>,
-    pub headers: http::HeaderMap,
 }
 
 impl From<lambda_http::Request> for HttpPortRequest {

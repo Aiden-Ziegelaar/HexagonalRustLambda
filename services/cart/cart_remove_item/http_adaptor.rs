@@ -3,7 +3,7 @@ mod http_port;
 use crate::http_port::cart_remove_item_delete_http_port;
 
 use eventing::EventingPort;
-use http_apigw_adaptor::{HttpPortRequest, HttpPortResponse};
+use http_port_tools::port_objects::{HttpPortRequest, HttpPortResponse};
 
 use lambda_adaptor::common_lambda_adaptor;
 use lambda_http::{run, service_fn, Error, IntoResponse};

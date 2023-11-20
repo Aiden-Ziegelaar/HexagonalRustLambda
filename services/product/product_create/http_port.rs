@@ -2,7 +2,7 @@ use crate::domain::product_create_core;
 
 use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
-use http_apigw_adaptor::HttpPortRequest;
+use http_port_tools::port_objects::HttpPortRequest;
 use http_port_tools::http_payload_decoder;
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;

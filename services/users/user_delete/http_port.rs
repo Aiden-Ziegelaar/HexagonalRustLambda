@@ -3,7 +3,7 @@ use crate::domain::user_delete_core;
 use error::HexagonalError;
 use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
-use http_apigw_adaptor::HttpPortRequest;
+use http_port_tools::port_objects::HttpPortRequest;
 use models::models::user::UserRepositoryPort;
 
 pub async fn user_delete_delete_http_port<T1: UserRepositoryPort, T2: EventingPort>(

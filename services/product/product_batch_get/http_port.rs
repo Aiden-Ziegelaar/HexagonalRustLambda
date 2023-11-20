@@ -2,7 +2,7 @@ use crate::domain::product_get_batch_core;
 
 use error::HexagonalError;
 use http::{Error, Response, StatusCode};
-use http_apigw_adaptor::HttpPortRequest;
+use http_port_tools::port_objects::HttpPortRequest;
 use models::models::product::ProductRepositoryPort;
 use serde::Serialize;
 use models::models::product::Product;

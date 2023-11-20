@@ -1,7 +1,7 @@
 mod domain;
-mod eventbridge_port;
+mod event_port;
 
-use crate::eventbridge_port::cart_clear_user_deleted_event_port;
+use crate::event_port::cart_clear_user_deleted_event_port;
 use eventing::{EventingPort, events::user::user_deleted::EventUserDeletedV1};
 
 use lambda_adaptor::common_lambda_adaptor;
@@ -15,7 +15,8 @@ async fn eventbridge_lambda_driving_adaptor<T1: CartRepositoryPort, T2: Eventing
     eventing_port: &T2,
     event: LambdaEvent<CloudWatchEvent<EventUserDeletedV1>>,
 ) -> Result<(), Error> {
-    cart_clear_user_deleted_event_port(cart_repository_port, eventing_port, event.payload)
+    let internal_event = event.payload.detail.unwrap();
+    cart_clear_user_deleted_event_port(cart_repository_port, eventing_port, internal_event)
         .await
         .unwrap();
     Ok(())

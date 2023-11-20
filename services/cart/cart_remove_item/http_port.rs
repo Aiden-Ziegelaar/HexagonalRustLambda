@@ -3,7 +3,7 @@ use crate::domain::cart_remove_item_core;
 use error::HexagonalError;
 use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
-use http_apigw_adaptor::HttpPortRequest;
+use http_port_tools::port_objects::HttpPortRequest;
 use models::models::cart::CartRepositoryPort;
 
 pub async fn cart_remove_item_delete_http_port<T1: CartRepositoryPort, T2: EventingPort>(

@@ -2,7 +2,7 @@ use crate::domain::user_get_core;
 
 use error::HexagonalError;
 use http::{Error, Response, StatusCode};
-use http_apigw_adaptor::HttpPortRequest;
+use http_port_tools::port_objects::HttpPortRequest;
 use models::models::user::UserRepositoryPort;
 
 pub async fn user_get_get_http_port<T1: UserRepositoryPort>(

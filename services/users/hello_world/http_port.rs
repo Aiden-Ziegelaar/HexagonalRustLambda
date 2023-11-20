@@ -1,6 +1,6 @@
 use crate::domain::hello_world_core;
 use http::{Error, Response, StatusCode};
-use http_apigw_adaptor::HttpPortRequest;
+use http_port_tools::port_objects::HttpPortRequest;
 
 pub async fn hello_world_get_http_port(
     request: HttpPortRequest,

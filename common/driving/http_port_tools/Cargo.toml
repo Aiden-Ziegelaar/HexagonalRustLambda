@@ -8,3 +8,9 @@ edition.workspace = true
 
 [lib]
 doctest = false
+
+[dependencies]
+http = { workspace = true }
+query_map = { workspace = true }
+lambda_http = { workspace = true }
+lambda_adaptor = { workspace = true }

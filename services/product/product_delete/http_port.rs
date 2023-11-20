@@ -3,7 +3,7 @@ use crate::domain::product_delete_core;
 use error::HexagonalError;
 use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
-use http_apigw_adaptor::HttpPortRequest;
+use http_port_tools::port_objects::HttpPortRequest;
 use models::models::product::ProductRepositoryPort;
 
 pub async fn product_delete_delete_http_port<T1: ProductRepositoryPort, T2: EventingPort>(

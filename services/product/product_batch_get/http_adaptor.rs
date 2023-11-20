@@ -2,7 +2,7 @@ mod domain;
 mod http_port;
 use crate::http_port::product_get_batch_post_http_port;
 
-use http_apigw_adaptor::{HttpPortRequest, HttpPortResponse};
+use http_port_tools::port_objects::{HttpPortRequest, HttpPortResponse};
 
 use lambda_adaptor::common_lambda_adaptor;
 use lambda_http::{run, service_fn, Error, IntoResponse};

@@ -22,7 +22,7 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt"] }
 aws_lambda_events = { version = "0.10.0" }
 http = { version = "0.2.9" }
-query_map = { version = "0.6.0" }
+query_map = { version = "0.7.0" }
 lazy_static = { version = "1.4.0" }
 jsonschema = { version = "0.17.1" }
 serde_json = { version = "1.0.105" }
@@ -38,7 +38,6 @@ aws-sdk-eventbridge = {version = "0.31.1" }
 # Local Dependencies
 models = { path = "common/driven/models" }
 lambda_adaptor = { path = "common/driving/lambda_adaptor" }
-http_apigw_adaptor = { path = "common/driving/http_apigw_adaptor" }
 http_port_tools = { path = "common/driving/http_port_tools" }
 persistance_repository = { path = "common/driven/persistance_repository" }
 eventing = { path = "common/driven/eventing" }
