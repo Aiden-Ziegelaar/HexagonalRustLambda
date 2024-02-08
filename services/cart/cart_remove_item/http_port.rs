@@ -33,7 +33,14 @@ pub async fn cart_remove_item_delete_http_port<T1: CartRepositoryPort, T2: Event
             return Ok(err.compile_to_http_response());
         }
     };
-    match cart_remove_item_core(cart_repository_port, eventing_port, username.to_string(), product_id.to_string()).await {
+    match cart_remove_item_core(
+        cart_repository_port,
+        eventing_port,
+        username.to_string(),
+        product_id.to_string(),
+    )
+    .await
+    {
         Ok(result) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

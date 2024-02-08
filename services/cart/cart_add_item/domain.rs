@@ -82,11 +82,13 @@ mod tests {
         eventing_port
             .expect_emit::<EventCartItemAddedV1>()
             .times(1)
-            .returning(|_| Err(error::HexagonalError{
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "test".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(|_| {
+                Err(error::HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
         let result = cart_add_item_core(&cart_repository_port, &eventing_port, cart_item).await;
@@ -111,11 +113,13 @@ mod tests {
 
         cart_repository_port
             .expect_cart_add_item()
-            .returning(move |_| Err(error::HexagonalError{
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "test".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(move |_| {
+                Err(error::HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         eventing_port
             .expect_emit::<EventCartItemAddedV1>()

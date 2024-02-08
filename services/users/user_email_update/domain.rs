@@ -11,7 +11,7 @@ pub async fn user_email_update_core<T1: UserRepositoryPort, T2: EventingPort>(
     user_repository_port: &T1,
     eventing_port: &T2,
     username: &String,
-    new_email: &String
+    new_email: &String,
 ) -> Result<(), HexagonalError> {
     let email_regex = EMAIL_REGEX.get_or_init(create_email_regex);
 
@@ -70,8 +70,7 @@ mod tests {
 
         // Act
         let result =
-            user_email_update_core(&user_repository_port, &eventing_port, &username, &email)
-                .await;
+            user_email_update_core(&user_repository_port, &eventing_port, &username, &email).await;
 
         // Assert
         assert!(result.is_ok());
@@ -99,8 +98,7 @@ mod tests {
 
         // Act
         let result =
-            user_email_update_core(&user_repository_port, &eventing_port, &username, &email)
-                .await;
+            user_email_update_core(&user_repository_port, &eventing_port, &username, &email).await;
 
         // Assert
         assert!(result.is_err());
@@ -133,8 +131,7 @@ mod tests {
 
         // Act
         let result =
-            user_email_update_core(&user_repository_port, &eventing_port, &username, &email)
-                .await;
+            user_email_update_core(&user_repository_port, &eventing_port, &username, &email).await;
 
         // Assert
         assert!(result.is_err());

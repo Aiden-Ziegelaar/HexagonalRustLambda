@@ -6,7 +6,13 @@ pub async fn cart_update_item_core<T1: CartRepositoryPort, T2: EventingPort>(
     eventing_port: &T2,
     cart_item: CartItem,
 ) -> Result<CartItem, error::HexagonalError> {
-    let cart_item_result = cart_repository_port.cart_update_item(&cart_item.user_id.to_ascii_lowercase(), &cart_item.product_id, cart_item.quantity).await;
+    let cart_item_result = cart_repository_port
+        .cart_update_item(
+            &cart_item.user_id.to_ascii_lowercase(),
+            &cart_item.product_id,
+            cart_item.quantity,
+        )
+        .await;
 
     if cart_item_result.is_ok() {
         let event_result = eventing_port
@@ -81,11 +87,13 @@ mod tests {
         eventing_port
             .expect_emit::<EventCartItemAddedV1>()
             .times(1)
-            .returning(|_| Err(error::HexagonalError{
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "test".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(|_| {
+                Err(error::HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
         let result = cart_update_item_core(&cart_repository_port, &eventing_port, cart_item).await;
@@ -110,11 +118,13 @@ mod tests {
 
         cart_repository_port
             .expect_cart_update_item()
-            .returning(move |_, _, _| Err(error::HexagonalError{
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "test".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(move |_, _, _| {
+                Err(error::HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         eventing_port
             .expect_emit::<EventCartItemAddedV1>()

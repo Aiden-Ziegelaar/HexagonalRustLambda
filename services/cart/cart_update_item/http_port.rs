@@ -3,12 +3,12 @@ use crate::domain::cart_update_item_core;
 use error::HexagonalError;
 use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
-use http_port_tools::port_objects::HttpPortRequest;
 use http_port_tools::http_payload_decoder;
+use http_port_tools::port_objects::HttpPortRequest;
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;
 use models::models::cart::{CartItem, CartRepositoryPort};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 lazy_static! {
@@ -66,14 +66,21 @@ pub async fn cart_update_item_patch_http_port<T1: CartRepositoryPort, T2: Eventi
         }
     };
     let payload = http_request.payload;
-    let cart_update_item_body = http_payload_decoder!(CartUpdateItemBody, CART_ITEM_SCHEMA, payload);
-    match cart_update_item_core(cart_repository_port, eventing_port, CartItem { 
-        product_id: product_id.to_string(),
-        user_id: username.to_string(),
-        quantity: cart_update_item_body.quantity,
-        created_at: "".to_string(), // Will be excluded in adaptor
-        updated_at: "".to_string() // Will be overwritten in adaptor
-    }).await {
+    let cart_update_item_body =
+        http_payload_decoder!(CartUpdateItemBody, CART_ITEM_SCHEMA, payload);
+    match cart_update_item_core(
+        cart_repository_port,
+        eventing_port,
+        CartItem {
+            product_id: product_id.to_string(),
+            user_id: username.to_string(),
+            quantity: cart_update_item_body.quantity,
+            created_at: "".to_string(), // Will be excluded in adaptor
+            updated_at: "".to_string(), // Will be overwritten in adaptor
+        },
+    )
+    .await
+    {
         Ok(result) => {
             let resp = Response::builder()
                 .status(StatusCode::OK)

@@ -101,7 +101,7 @@ mod tests {
         // Arrange
         let mut user_repository_port = models::models::user::MockUserRepositoryPort::new();
         let mut eventing_port = eventing::MockEventingPort::new();
-        
+
         let username = "mycoolusername".to_string();
 
         let user = User {

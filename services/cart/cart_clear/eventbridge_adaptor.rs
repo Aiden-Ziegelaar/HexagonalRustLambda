@@ -2,11 +2,11 @@ mod domain;
 mod event_port;
 
 use crate::event_port::cart_clear_user_deleted_event_port;
-use eventing::{EventingPort, events::user::user_deleted::EventUserDeletedV1};
+use eventing::{events::user::user_deleted::EventUserDeletedV1, EventingPort};
 
+use aws_lambda_events::cloudwatch_events::CloudWatchEvent;
 use lambda_adaptor::common_lambda_adaptor;
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
-use aws_lambda_events::cloudwatch_events::CloudWatchEvent;
 
 use models::models::cart::CartRepositoryPort;
 

@@ -8,7 +8,7 @@ const EVENT_TYPE: &str = "cart_items_removed";
 pub struct EventCartItemsRemovedV1 {
     pub version: u32,
     pub event_type: String,
-    pub cart_items: Vec<models::models::cart::CartItem>
+    pub cart_items: Vec<models::models::cart::CartItem>,
 }
 
 impl EventCartItemsRemovedV1 {

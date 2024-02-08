@@ -3,9 +3,9 @@ use crate::domain::product_get_batch_core;
 use error::HexagonalError;
 use http::{Error, Response, StatusCode};
 use http_port_tools::port_objects::HttpPortRequest;
+use models::models::product::Product;
 use models::models::product::ProductRepositoryPort;
 use serde::Serialize;
-use models::models::product::Product;
 
 #[derive(Serialize, Debug)]
 struct ProductBatchGetResponse {
@@ -35,7 +35,7 @@ pub async fn product_get_batch_post_http_port<T1: ProductRepositoryPort>(
                 .header("content-type", "application/json")
                 .body(serde_json::to_string(&ProductBatchGetResponse { products }).unwrap());
             Ok(resp.unwrap())
-        },
+        }
         Err(err) => Ok(err.compile_to_http_response()),
     }
 }

@@ -1,4 +1,3 @@
-
 use std::future::Future;
 use std::pin::Pin;
 
@@ -12,7 +11,6 @@ pub struct HttpPortRequest {
     pub payload: Option<String>,
     pub headers: http::HeaderMap,
 }
-
 
 impl lambda_http::IntoResponse for HttpPortResponse<String> {
     fn into_response(

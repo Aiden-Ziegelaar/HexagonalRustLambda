@@ -4,9 +4,9 @@ mod event_port;
 use crate::event_port::cart_product_deleted_event_port;
 use eventing::events::product::product_deleted::EventProductDeletedV1;
 
+use aws_lambda_events::cloudwatch_events::CloudWatchEvent;
 use lambda_adaptor::common_lambda_adaptor;
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
-use aws_lambda_events::cloudwatch_events::CloudWatchEvent;
 
 use models::models::cart::CartRepositoryPort;
 

@@ -54,8 +54,6 @@ impl EventingPort for EventingRepository {
                 error: error::HexagonalErrorCode::AdaptorError,
                 trace: err.to_string(),
             })
-            .map(|value| (
-                println!("{:?}", value)
-            ))
+            .map(|value| (println!("{:?}", value)))
     }
 }

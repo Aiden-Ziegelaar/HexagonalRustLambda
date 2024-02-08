@@ -13,9 +13,10 @@ async fn http_lambda_driving_adaptor<T1: ProductRepositoryPort>(
     event: lambda_http::Request,
 ) -> Result<lambda_http::Response<lambda_http::Body>, Error> {
     let http_request = HttpPortRequest::from(event);
-    let generic_http_response = product_get_batch_post_http_port(product_repository_port, http_request)
-        .await
-        .unwrap();
+    let generic_http_response =
+        product_get_batch_post_http_port(product_repository_port, http_request)
+            .await
+            .unwrap();
     let lambda_http_response = HttpPortResponse(generic_http_response)
         .into_response()
         .await;

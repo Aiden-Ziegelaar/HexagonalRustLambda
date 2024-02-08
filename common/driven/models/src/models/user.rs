@@ -81,7 +81,10 @@ impl User {
             AttributeValue::S("USER#EMAIL#".to_string() + &self.email.clone()),
         );
         item.insert("Skey".to_string(), AttributeValue::S("-".to_string()));
-        item.insert("username".to_string(), AttributeValue::S(self.username.clone()));
+        item.insert(
+            "username".to_string(),
+            AttributeValue::S(self.username.clone()),
+        );
         item
     }
 }
@@ -111,7 +114,8 @@ impl MutableUser {
 #[async_trait]
 pub trait UserRepositoryPort {
     async fn user_get_by_email(&self, email: &String) -> Result<Vec<User>, HexagonalError>;
-    async fn user_get_by_username(&self, username: &String) -> Result<Option<User>, HexagonalError>;
+    async fn user_get_by_username(&self, username: &String)
+        -> Result<Option<User>, HexagonalError>;
     async fn user_create(&self, user: &User) -> Result<User, HexagonalError>;
     async fn user_update_by_username(
         &self,
@@ -140,7 +144,10 @@ impl<'a> UserRepositoryAdaptor<'a> {
 
 #[async_trait]
 impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
-    async fn user_get_by_username(&self, username: &String) -> Result<Option<User>, HexagonalError> {
+    async fn user_get_by_username(
+        &self,
+        username: &String,
+    ) -> Result<Option<User>, HexagonalError> {
         let result = self
             .persistance_repository
             .get_item_primary(format!("USER#{}", username.to_string()), "-".to_string())
@@ -368,10 +375,7 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
 
         let update_user_expression = "SET email = :email, updated_at = :updated_at";
         let mut attribute_values = HashMap::new();
-        attribute_values.insert(
-            ":email".to_string(),
-            AttributeValue::S(new_email.clone()),
-        );
+        attribute_values.insert(":email".to_string(), AttributeValue::S(new_email.clone()));
         attribute_values.insert(":updated_at".to_string(), AttributeValue::N(default_time()));
         let email_update = aws_sdk_dynamodb::types::Update::builder()
             .table_name(self.persistance_repository.table_name.clone())
@@ -481,7 +485,10 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
 
         let user_delete = aws_sdk_dynamodb::types::Delete::builder()
             .table_name(self.persistance_repository.table_name.clone())
-            .key("Pkey", AttributeValue::S("USERNAME#".to_string() + username))
+            .key(
+                "Pkey",
+                AttributeValue::S("USERNAME#".to_string() + username),
+            )
             .key("Skey", AttributeValue::S("-".to_string()))
             .build();
 

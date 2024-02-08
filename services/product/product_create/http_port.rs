@@ -2,8 +2,8 @@ use crate::domain::product_create_core;
 
 use eventing::EventingPort;
 use http::{Error, Response, StatusCode};
-use http_port_tools::port_objects::HttpPortRequest;
 use http_port_tools::http_payload_decoder;
+use http_port_tools::port_objects::HttpPortRequest;
 use jsonschema::{Draft, JSONSchema};
 use lazy_static::lazy_static;
 use models::models::product::{Product, ProductRepositoryPort};

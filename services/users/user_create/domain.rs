@@ -21,15 +21,24 @@ pub async fn user_create_core<T1: UserRepositoryPort, T2: EventingPort>(
     let username_match = username_regex.await.is_match(&who.username);
     let email_match = email_regex.await.is_match(&who.email);
 
-
     // validate email with regex
     if !(email_match && username_match) {
         return Err(error::HexagonalError {
             error: error::HexagonalErrorCode::BadInput,
-            message: format!("Invalid {}{}{}",
-                if email_match {""} else {"email "}, 
-                if !email_match && !username_match {"and "} else {""},  
-                if username_match {""} else {"username, username must be lowercase alphanumeric, and can contain . - ~ _"}),
+            message: format!(
+                "Invalid {}{}{}",
+                if email_match { "" } else { "email " },
+                if !email_match && !username_match {
+                    "and "
+                } else {
+                    ""
+                },
+                if username_match {
+                    ""
+                } else {
+                    "username, username must be lowercase alphanumeric, and can contain . - ~ _"
+                }
+            ),
             trace: "".to_string(),
         });
     }

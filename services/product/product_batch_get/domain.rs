@@ -51,7 +51,10 @@ mod tests {
     async fn test_product_get_core_not_found() {
         let mut product_repository_port = models::models::product::MockProductRepositoryPort::new();
 
-        let product_ids = vec![uuid::Uuid::new_v4().to_string(), uuid::Uuid::new_v4().to_string()];
+        let product_ids = vec![
+            uuid::Uuid::new_v4().to_string(),
+            uuid::Uuid::new_v4().to_string(),
+        ];
 
         product_repository_port
             .expect_product_get_by_ids()

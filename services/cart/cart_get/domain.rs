@@ -4,7 +4,9 @@ pub async fn cart_get_core<T1: CartRepositoryPort>(
     cart_repository_port: &T1,
     user_id: String,
 ) -> Result<Vec<CartItem>, error::HexagonalError> {
-    let cart_result = cart_repository_port.cart_get_by_user_id(&user_id.to_ascii_lowercase()).await;
+    let cart_result = cart_repository_port
+        .cart_get_by_user_id(&user_id.to_ascii_lowercase())
+        .await;
 
     cart_result
 }
@@ -41,7 +43,6 @@ mod tests {
         assert!(result.is_ok());
     }
 
-
     #[tokio::test]
     async fn test_cart_get_core_cart_repository_error() {
         // Arrange
@@ -57,11 +58,13 @@ mod tests {
 
         cart_repository_port
             .expect_cart_get_by_user_id()
-            .returning(move |_| Err(error::HexagonalError{
-                error: error::HexagonalErrorCode::AdaptorError,
-                message: "test".to_string(),
-                trace: "".to_string(),
-            }));
+            .returning(move |_| {
+                Err(error::HexagonalError {
+                    error: error::HexagonalErrorCode::AdaptorError,
+                    message: "test".to_string(),
+                    trace: "".to_string(),
+                })
+            });
 
         // Act
         let result = cart_get_core(&cart_repository_port, cart_item.user_id).await;
