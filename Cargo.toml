@@ -12,28 +12,27 @@ members = [
 
 [workspace.dependencies]
 # Common Lambda HTTP Dependencies
-lambda_http = { version = "0.8.1" }
-lambda_runtime = { version = "0.8.1" }
-serde = "1.0.136"
+lambda_http = { version = "0.11.1" }
+lambda_runtime = { version = "0.11.1" }
+serde = "1.0.203"
 # Common Lambda Dependencies
 tokio = { version = "1", features = ["full"] }
 async-trait = { version = "0.1.73" }
 tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt"] }
-aws_lambda_events = { version = "0.10.0" }
-http = { version = "0.2.9" }
+aws_lambda_events = { version = "0.15.1" }
+http = { version = "1.1.0" }
 query_map = { version = "0.7.0" }
 lazy_static = { version = "1.4.0" }
 jsonschema = { version = "0.17.1" }
-serde_json = { version = "1.0.105" }
-once_cell = { version = "1.4.0" }
+serde_json = { version = "1.0.117" }
 regex = { version = "1.9.5" }
 uuid = {version = "1.4.1", features = ["serde", "v4"] }
 
 # AWS SDK Dependencies
-aws-config = { version = "0.56.1" }
-aws-sdk-dynamodb = { version = "0.31.1" }
-aws-sdk-eventbridge = {version = "0.31.1" }
+aws-config = { version = "1.1.7" }
+aws-sdk-dynamodb = { version = "1.31.0" }
+aws-sdk-eventbridge = {version = "1.29.0" }
 
 # Local Dependencies
 models = { path = "common/driven/models" }

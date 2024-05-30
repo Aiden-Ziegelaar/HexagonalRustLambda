@@ -204,7 +204,8 @@ impl<'a> ProductRepositoryPort for ProductRepositoryAdaptor<'a> {
 
         let keys_and_attributes = KeysAndAttributes::builder()
             .set_keys(Some(get_item_key_vec))
-            .build();
+            .build()
+            .unwrap(); // Key is always set so unwrap is safe
 
         let mut request_items = HashMap::new();
         request_items.insert(

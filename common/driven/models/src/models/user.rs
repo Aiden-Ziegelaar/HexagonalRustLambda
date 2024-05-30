@@ -209,13 +209,15 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .table_name(self.persistance_repository.table_name.clone())
             .set_item(Some(user_model))
             .condition_expression(pkey_unique.to_string())
-            .build();
+            .build()
+            .unwrap(); // table name and item is always set so unwrap is safe
 
         let email_put = aws_sdk_dynamodb::types::Put::builder()
             .table_name(self.persistance_repository.table_name.clone())
             .set_item(Some(email_model))
             .condition_expression(pkey_unique.to_string())
-            .build();
+            .build()
+            .unwrap(); // table name and item is always set so unwrap is safe
 
         let user_transact = aws_sdk_dynamodb::types::TransactWriteItem::builder()
             .put(user_put)
@@ -368,7 +370,8 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .table_name(self.persistance_repository.table_name.clone())
             .set_item(Some(email_item))
             .condition_expression(pkey_unique.to_string())
-            .build();
+            .build()
+            .unwrap(); // Key is always set so unwrap is safe
         let email_put_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
             .put(email_put)
             .build();
@@ -383,7 +386,8 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
             .key("Pkey", AttributeValue::S("USER#".to_string() + &username))
             .key("Skey", AttributeValue::S("-".to_string()))
             .set_expression_attribute_values(Some(attribute_values))
-            .build();
+            .build()
+            .unwrap(); // Key is always set so unwrap is safe
         let email_update_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
             .update(email_update)
             .build();
@@ -395,7 +399,8 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
                 AttributeValue::S("USER#EMAIL#".to_string() + &old_email),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
-            .build();
+            .build()
+            .unwrap(); // Key is always set so unwrap is safe
         let email_delete_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
             .delete(email_delete)
             .build();
@@ -481,7 +486,8 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
                 AttributeValue::S("USER#EMAIL#".to_string() + &unwrapped_user.username),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
-            .build();
+            .build()
+            .unwrap(); // Key is always set so unwrap is safe
 
         let user_delete = aws_sdk_dynamodb::types::Delete::builder()
             .table_name(self.persistance_repository.table_name.clone())
@@ -490,7 +496,8 @@ impl<'a> UserRepositoryPort for UserRepositoryAdaptor<'a> {
                 AttributeValue::S("USERNAME#".to_string() + username),
             )
             .key("Skey", AttributeValue::S("-".to_string()))
-            .build();
+            .build()
+            .unwrap(); // Key is always set so unwrap is safe
 
         let email_delete_action = aws_sdk_dynamodb::types::TransactWriteItem::builder()
             .delete(email_delete)

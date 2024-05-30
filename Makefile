@@ -11,6 +11,10 @@ build-debug:
 build-production:
 	cargo lambda build --arm64 --release
 
+npm-install:
+	pushd test-integration && npm install && popd
+	pushd test-artillery && npm install && popd
+
 test: test-rust test-integration
 
 test-rust:

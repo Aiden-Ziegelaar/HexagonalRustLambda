@@ -336,7 +336,8 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                                                 + &item.product_id.to_string(),
                                         ),
                                     )
-                                    .build(),
+                                    .build()
+                                    .unwrap(), // Key is always set so unwrap is safe
                             )
                             .build()
                     })
@@ -445,7 +446,8 @@ impl<'a> CartRepositoryPort for CartRepositoryAdaptor<'a> {
                                                     + &item.product_id.to_string(),
                                             ),
                                         )
-                                        .build(),
+                                        .build()
+                                        .unwrap(), // Key is always set so unwrap is safe
                                 )
                                 .build()
                         })

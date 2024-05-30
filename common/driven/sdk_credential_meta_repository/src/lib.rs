@@ -1,4 +1,4 @@
-use aws_config::SdkConfig;
+use aws_config::{BehaviorVersion, SdkConfig};
 use tokio::sync::OnceCell;
 
 pub static AWS_CREDENTIAL_REPOSITORY: OnceCell<SdkCredentialsMetaRepository> =
@@ -12,7 +12,7 @@ pub struct SdkCredentialsMetaRepository {
 impl SdkCredentialsMetaRepository {
     pub async fn new() -> SdkCredentialsMetaRepository {
         let now_sdkconfig = std::time::SystemTime::now();
-        let sdk_config = aws_config::from_env().load().await;
+        let sdk_config = aws_config::load_defaults(BehaviorVersion::v2024_03_28()).await;
         println!(
             "aws_config::load_from_env() took {:?}",
             now_sdkconfig.elapsed().unwrap().as_millis()
