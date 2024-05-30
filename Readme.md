@@ -5,7 +5,7 @@ TODO: Add Blog post when published
 
 ## Getting Started
 What you'll need:
-* [An AWS Account](https://aws.amazon.com/free/)\
+* [An AWS Account](https://aws.amazon.com/free/)
 * [Rust installed via rustup](https://rustup.rs/)
 * [Cargo Lambda](https://www.cargo-lambda.info/guide/getting-started.html)
 * [Terraform](https://www.terraform.io/)
