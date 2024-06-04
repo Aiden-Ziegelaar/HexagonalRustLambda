@@ -29,7 +29,7 @@ resource "aws_lambda_function" "lambda" {
 
   source_code_hash = data.archive_file.lambda_archive.output_base64sha256
 
-  runtime = "provided.al2"
+  runtime = "provided.al2023"
 
   architectures = var.architectures
 
